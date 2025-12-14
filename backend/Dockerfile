@@ -6,7 +6,9 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY src ./src
-COPY data ./data
+
+# Create data directory for SQLite database
+RUN mkdir -p ./data
 
 EXPOSE 5000
 
