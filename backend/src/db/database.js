@@ -2,8 +2,11 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Crear directorio de datos
-const dataDir = path.join(__dirname, '../../data');
+// Crear directorio de datos (usa /tmp en producción Render/Railway)
+const dataDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp'
+  : path.join(__dirname, '../../data');
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }

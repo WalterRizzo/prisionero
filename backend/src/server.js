@@ -9,9 +9,15 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
-    origin: "*", // Permitir cualquier origen para desarrollo
-    methods: ["GET", "POST"]
-  }
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowEIO3: true,
+    transports: ['websocket', 'polling']
+  },
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5
 });
 
 // Middleware

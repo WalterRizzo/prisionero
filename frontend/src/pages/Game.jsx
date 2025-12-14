@@ -734,7 +734,11 @@ const Game = () => {
     }
     
     const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10
     });
 
     newSocket.on('connect', () => {
