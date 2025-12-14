@@ -79,10 +79,10 @@ const Home = () => {
             ENTRAR A PARTIDA
           </button>
           <button 
-            onClick={() => navigate('/lobby')}
-            className="w-full py-4 text-lg font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-pink-500 transition-all"
+            onClick={() => navigate('/leaderboard')}
+            className="w-full py-4 text-lg font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-yellow-500 transition-all"
           >
-            BUSCAR RIVAL RÁPIDO
+            🏆 RANKING
           </button>
         </div>
 

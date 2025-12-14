@@ -29,9 +29,15 @@ const createTables = () => {
         avatar TEXT DEFAULT 'avatar-default',
         games_played INTEGER DEFAULT 0,
         games_won INTEGER DEFAULT 0,
+        games_lost INTEGER DEFAULT 0,
         total_score INTEGER DEFAULT 0,
         karma INTEGER DEFAULT 0,
         cooperation_rate REAL DEFAULT 0,
+        favorite_strategy TEXT DEFAULT 'balanced',
+        win_streak INTEGER DEFAULT 0,
+        max_win_streak INTEGER DEFAULT 0,
+        referral_code TEXT UNIQUE,
+        invited_by_code TEXT,
         is_premium INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -59,6 +65,29 @@ const createTables = () => {
         score INTEGER DEFAULT 0,
         FOREIGN KEY (game_id) REFERENCES games(id),
         FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        achievement_type TEXT NOT NULL,
+        unlocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        UNIQUE(user_id, achievement_type)
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS referrals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        referrer_id INTEGER NOT NULL,
+        referred_id INTEGER,
+        referral_code TEXT UNIQUE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY (referrer_id) REFERENCES users(id)
       )
     `);
   });

@@ -3,6 +3,8 @@
 // Multijugador Online en Tiempo Real
 // ============================================
 
+const { updateUserStats } = require('./statsHelper');
+
 // Almacenamiento en memoria (para MVP)
 const onlinePlayers = new Map();
 const activeGames = new Map();
@@ -478,6 +480,21 @@ module.exports = (io) => {
             { id: p2.id, name: p2.name, score: p2.score }
           ],
           history: game.history
+        });
+
+        // Actualizar estadísticas de ambos jugadores
+        updateUserStats(p1.id, {
+          won: winner && winner.id === p1.id,
+          score: p1.score,
+          cooperationRate: (game.history.filter(h => h.p1 === 'trust').length / game.history.length * 100).toFixed(1),
+          strategy: 'online'
+        });
+
+        updateUserStats(p2.id, {
+          won: winner && winner.id === p2.id,
+          score: p2.score,
+          cooperationRate: (game.history.filter(h => h.p2 === 'trust').length / game.history.length * 100).toFixed(1),
+          strategy: 'online'
         });
 
         endGame(io, game);
