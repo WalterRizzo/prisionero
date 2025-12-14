@@ -334,29 +334,28 @@ module.exports = (io) => {
     
     const timer = setTimeout(function() {
       const game = activeGames.get(gameId);
-      if (!game) return;
+      if (!game) {
+        console.log('⚠️ Partida expiró antes de procesar timeout:', gameId);
+        return;
+      }
       
-      console.log('⏱️ TIMEOUT en partida ' + gameId);
+      console.log('⏱️ TIMEOUT en partida ' + gameId + ' ronda ' + game.round);
       
-      // Asignar 'betray' a quien no eligió
+      // Asignar 'betray' (timeout) a quien no eligió
       game.players.forEach(function(p) {
         if (p.move === null) {
           p.move = 'timeout';
-          console.log(p.name + ' no eligió - TIMEOUT');
+          console.log(p.name + ' no eligió - TIMEOUT automático a traición');
         }
       });
       
-      // Notificar timeout
-      io.to(gameId).emit('round-timeout', {
-        round: game.round,
-        message: 'Tiempo agotado'
-      });
-      
-      // Procesar la ronda
+      // Procesar la ronda inmediatamente
+      console.log('🔄 Procesando ronda 'después de timeout...');
       processRound(io, game);
     }, ROUND_TIMEOUT);
     
     roundTimers.set(gameId, timer);
+    console.log('✅ Timer iniciado para gameId:', gameId);
   }
   
   function clearRoundTimer(gameId) {

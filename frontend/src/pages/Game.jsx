@@ -277,20 +277,86 @@ const BetrayIcon = () => <Swords className="w-8 h-8 text-pink-500" />;
 // Machine Learning + Teoría de Juegos Avanzada
 // ==========================================
 const MasterAI = {
-  // === TABLA DE PUNTUACIÓN (la IA la conoce perfectamente) ===
+  // === TABLA DE PUNTUACIÓN BASE (simple) ===
   PAYOFF: {
     // [miMovimiento][suMovimiento] = misPuntos
     trust: { trust: 3, betray: -5 },
     betray: { trust: 5, betray: -2 }
   },
+
+  // === SISTEMA AVANZADO DE PUNTUACIÓN (que la IA conoce) ===
+  ADVANCED_SCORING: {
+    basePayoff: {
+      trustTrust: 2,      // Ambos confían = +2/+2
+      trustBetray: -1,    // Confiaste, él traicionó = -1
+      betrayTrust: 3,     // Traicionaste, él confió = +3
+      betrayBetray: -2    // Ambos traicionan = -2
+    },
+    antiTraitorPenalties: {
+      rounds1To2: { multiplier: 0.4 }, // Early betrayal: +2 en lugar de +5
+      consecutiveBetray3To4: -0,        // 3-4 traiciones consecutivas = 0 pts
+      consecutiveBetray5Plus: -3,       // 5+ traiciones consecutivas = -3 pts
+      cumulativeBetray4To6: -2,         // 4-6 traiciones totales en juego = -2
+      cumulativeBetray7Plus: -3         // 7+ traiciones totales en juego = -3
+    },
+    combo: {
+      x2: 4,   // 2 turnos consecutivos iguales = +4 bonus
+      x3: 5,   // 3 turnos consecutivos iguales = +5 bonus
+      x4Plus: 9 // 4+ turnos consecutivos iguales = +9 bonus
+    },
+    goldenRound: {
+      chance: 0.2, // 20% de probabilidad en cualquier ronda
+      multiplier: 2 // Duplica puntos
+    },
+    honor: {
+      trustedButBetrayed: -0.5,    // Pierde honor si confía y lo traicionan
+      betrayalChain: -1             // Pierde honor por traición consecutiva
+    }
+  },
   
-  // Calcular puntos esperados para una jugada
-  expectedValue: (myMove, predictedOpponentMove, confidence) => {
-    const certain = MasterAI.PAYOFF[myMove][predictedOpponentMove];
+  // Calcular puntos esperados para una jugada (VERSIÓN AVANZADA)
+  expectedValue: (myMove, predictedOpponentMove, confidence, round, history) => {
+    const adv = MasterAI.ADVANCED_SCORING;
+    let basePayoff = 0;
+    
+    // Calcular payoff base
+    if (myMove === 'trust' && predictedOpponentMove === 'trust') basePayoff = adv.basePayoff.trustTrust;
+    else if (myMove === 'trust' && predictedOpponentMove === 'betray') basePayoff = adv.basePayoff.trustBetray;
+    else if (myMove === 'betray' && predictedOpponentMove === 'trust') basePayoff = adv.basePayoff.betrayTrust;
+    else if (myMove === 'betray' && predictedOpponentMove === 'betray') basePayoff = adv.basePayoff.betrayBetray;
+    
+    // Penalizaciones anti-traitor en rondas tempranas
+    if (myMove === 'betray' && round <= 2) {
+      basePayoff *= adv.antiTraitorPenalties.rounds1To2.multiplier;
+    }
+    
+    // Penalización por traición consecutiva
+    let consecutiveBetrays = 0;
+    for (let i = Math.max(0, history.length - 5); i < history.length; i++) {
+      if (history[i].p2 === 'betray') consecutiveBetrays++;
+      else consecutiveBetrays = 0;
+    }
+    
+    if (consecutiveBetrays >= 5) basePayoff += adv.antiTraitorPenalties.consecutiveBetray5Plus;
+    else if (consecutiveBetrays >= 3) basePayoff += adv.antiTraitorPenalties.consecutiveBetray3To4;
+    
+    // Bonus por combo (turnos consecutivos iguales)
+    let comboLength = 1;
+    for (let i = history.length - 1; i >= 1; i--) {
+      if (history[i].p2 === history[i-1].p2) comboLength++;
+      else break;
+    }
+    if (comboLength >= 4) basePayoff += adv.combo.x4Plus;
+    else if (comboLength === 3) basePayoff += adv.combo.x3;
+    else if (comboLength === 2) basePayoff += adv.combo.x2;
+    
+    // Factor de confianza
     const opposite = predictedOpponentMove === 'trust' ? 'betray' : 'trust';
-    const uncertain = MasterAI.PAYOFF[myMove][opposite];
-    // Valor esperado = confianza * resultado_predicho + (1-confianza) * resultado_opuesto
-    return confidence * certain + (1 - confidence) * uncertain;
+    const oppositePayoff = myMove === 'trust'
+      ? (opposite === 'trust' ? adv.basePayoff.trustTrust : adv.basePayoff.trustBetray)
+      : (opposite === 'trust' ? adv.basePayoff.betrayTrust : adv.basePayoff.betrayBetray);
+    
+    return confidence * basePayoff + (1 - confidence) * oppositePayoff;
   },
 
   // === ANÁLISIS PROFUNDO DEL OPONENTE ===
@@ -518,9 +584,9 @@ const MasterAI = {
 
     // Ajustar por confianza en la predicción
     const adjustedTrust = trustValue * analysis.confidence + 
-      MasterAI.expectedValue('trust', analysis.predictedMove === 'trust' ? 'betray' : 'trust', 0.5) * (1 - analysis.confidence);
+      MasterAI.expectedValue('trust', analysis.predictedMove === 'trust' ? 'betray' : 'trust', 0.5, round, history) * (1 - analysis.confidence);
     const adjustedBetray = betrayValue * analysis.confidence + 
-      MasterAI.expectedValue('betray', analysis.predictedMove === 'trust' ? 'betray' : 'trust', 0.5) * (1 - analysis.confidence);
+      MasterAI.expectedValue('betray', analysis.predictedMove === 'trust' ? 'betray' : 'trust', 0.5, round, history) * (1 - analysis.confidence);
 
     // === REGLAS ESTRATÉGICAS ESPECIALES ===
     
