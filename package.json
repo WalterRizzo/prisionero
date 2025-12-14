@@ -8,8 +8,8 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
-    "build": "npm run build --workspace=frontend",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "cd frontend && npm run build",
     "deploy:cloudflare": "cd backend && wrangler deploy && cd ../frontend && npm run build && wrangler pages publish dist"
   },
   "devDependencies": {
