@@ -739,6 +739,7 @@ const Game = () => {
   const [scoreChanged, setScoreChanged] = useState({ p1: null, p2: null }); // 'win', 'lose', 'draw'
   const [gameOver, setGameOver] = useState(false);
   const [finalResult, setFinalResult] = useState(null); // 'win', 'lose', 'draw'
+  const [opponentInfo, setOpponentInfo] = useState(null); // Para REVENGE y SHARE
   
   // Estados para modo 2 jugadores
   const [currentPlayer, setCurrentPlayer] = useState(1); // 1 o 2
@@ -766,9 +767,9 @@ const Game = () => {
   // 🔥 COMBO SYSTEM + RONDA DORADA
   const [comboCount, setComboCount] = useState(0); // Rachas de cooperación mutua
   const [goldenRound, setGoldenRound] = useState(() => {
-    // Elegir 1-2 rondas doradas aleatorias entre ronda 4 y 9
-    const golden1 = Math.floor(Math.random() * 6) + 4; // 4-9
-    const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 6) + 4 : null;
+    // Elegir 1-2 rondas doradas aleatorias entre ronda 2 y 5 (para 5 rondas totales)
+    const golden1 = Math.floor(Math.random() * 4) + 2; // 2-5
+    const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 2 : null;
     return [golden1, golden2].filter(Boolean);
   });
   const [isGoldenRound, setIsGoldenRound] = useState(false);
@@ -1154,7 +1155,7 @@ const Game = () => {
         }, 500);
         
         setTimeout(() => {
-          if (round < 10) {
+          if (round < 5) {
             setRound(r => r + 1);
             setTimer(5);
             setShowResult(false);
@@ -1483,7 +1484,7 @@ const Game = () => {
 
 
     setTimeout(() => {
-      if (round < 10) {
+      if (round < 5) {
         setRound(r => r + 1);
         setTimer(5);
         setShowResult(false);
@@ -1673,7 +1674,25 @@ const Game = () => {
             </div>
             
             {/* Botones */}
-            <div className="flex gap-2 sm:gap-4 justify-center">
+            <div className="flex gap-2 sm:gap-4 justify-center flex-wrap">
+              <button 
+                onClick={() => {
+                  // Compartir resultado
+                  const result = `${finalResult === 'win' ? '🏆 GANÉ' : finalResult === 'lose' ? '💀 PERDÍ' : '🤝 EMPATE'} - ${players.p1.score}/${players.p2.score}`;
+                  const url = window.location.origin;
+                  const text = `${result} en PRISIONERO: DUELOS RÁPIDOS (60 segundos) ⚡ ¿Quieres jugar? ${url}`;
+                  if (navigator.share) {
+                    navigator.share({ text, title: 'Mi resultado en Prisionero' });
+                  } else {
+                    navigator.clipboard.writeText(text);
+                    alert('¡Enlace copiado al portapapeles!');
+                  }
+                }}
+                className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold text-sm sm:text-lg rounded-xl hover:scale-105 transition-transform"
+              >
+                📤 COMPARTIR
+              </button>
+              
               <button 
                 onClick={() => {
                   setGameOver(false);
@@ -1700,13 +1719,13 @@ const Game = () => {
                   setP2Choice(null);
                   setWaitingForP2(false);
                 }}
-                className="px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm sm:text-xl rounded-xl hover:scale-105 transition-transform"
+                className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm sm:text-lg rounded-xl hover:scale-105 transition-transform"
               >
                 🔄 REVANCHA
               </button>
               <button 
                 onClick={() => navigate('/lobby')}
-                className="px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-xl rounded-xl hover:scale-105 transition-transform"
+                className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-lg rounded-xl hover:scale-105 transition-transform"
               >
                 🚪 SALIR
               </button>
@@ -1721,7 +1740,7 @@ const Game = () => {
             <div className="text-center flex-shrink-0 px-1">
                 <p className="text-xs sm:text-lg font-bold text-gray-400">RONDA</p>
                 <p className={`text-2xl sm:text-4xl font-black ${isGoldenRound ? 'text-yellow-400 animate-pulse' : ''}`}>
-                  {isGoldenRound && '⭐ '}{round}<span className="text-lg sm:text-2xl text-gray-500">/10</span>
+                  {isGoldenRound && '⭐ '}{round}<span className="text-lg sm:text-2xl text-gray-500">/5</span>
                 </p>
                 {/* Indicador de Ronda Dorada */}
                 {isGoldenRound && (

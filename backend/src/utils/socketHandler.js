@@ -108,7 +108,7 @@ module.exports = (io) => {
           id: gameId,
           players: [],
           round: 1,
-          maxRounds: 10,
+          maxRounds: 5,
           status: 'waiting',
           history: []
         };
@@ -186,7 +186,7 @@ module.exports = (io) => {
           { id: invite.to.id, name: invite.to.name, score: 0, move: null, betrayalStreak: 0, cooperations: 0, betrayals: 0 }
         ],
         round: 1,
-        maxRounds: 10,
+        maxRounds: 5,
         status: 'playing',
         history: []
       });
@@ -209,7 +209,7 @@ module.exports = (io) => {
           { id: invite.to.id, name: invite.to.name }
         ],
         round: 1,
-        maxRounds: 10
+        maxRounds: 5
       });
 
       // Iniciar timer para la primera ronda
