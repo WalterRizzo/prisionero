@@ -9,13 +9,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
-    origin: process.env.SOCKET_IO_CORS_ORIGIN || "http://localhost:5173",
+    origin: "*", // Permitir cualquier origen para desarrollo
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*' })); // Permitir CORS de cualquier origen
 app.use(express.json());
 
 // Routes
@@ -34,9 +34,12 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(` Servidor escuchando en puerto ${PORT}`);
+const HOST = '0.0.0.0'; // Escuchar en todas las interfaces de red
+
+server.listen(PORT, HOST, () => {
+  console.log(` Servidor escuchando en ${HOST}:${PORT}`);
   console.log(` Base de datos: SQLite en C:/prisionero/data/prisionero.db`);
+  console.log(` Acceso de red habilitado para dispositivos externos`);
 });
 
 module.exports = { app, io, server };

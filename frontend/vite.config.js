@@ -5,5 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true,
+    allowedHosts: ['perform-upon-manufacturing-responding.trycloudflare.com'],
   },
 })
