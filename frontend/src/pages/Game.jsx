@@ -824,6 +824,39 @@ const Game = () => {
           gameId: onlineGameId,
           playerName: myName
         });
+        
+        // Recuperar estado guardado si existe (después de F5)
+        const savedGameState = localStorage.getItem('gameState');
+        if (savedGameState) {
+          try {
+            const state = JSON.parse(savedGameState);
+            console.log('🔄 Recuperando estado guardado:', state);
+            
+            // Restaurar el estado del juego
+            setRound(state.round || 1);
+            setTimer(state.timer || 15);
+            setHistory(state.history || []);
+            setPlayers(state.players || { p1: { name: myName, score: 0 }, p2: { name: '', score: 0 } });
+            setPlayerHasChosen(state.playerHasChosen || false);
+            setShowResult(state.showResult || false);
+            setGameOver(state.gameOver || false);
+            setFinalResult(state.finalResult || null);
+            
+            // Si estaba a mitad de una ronda, notificar al servidor
+            if (state.round && state.round <= 5 && state.playerHasChosen) {
+              newSocket.emit('player-reconnected', {
+                gameId: onlineGameId,
+                round: state.round,
+                hasChosen: state.playerHasChosen
+              });
+            }
+            
+            // Limpiar estado guardado
+            localStorage.removeItem('gameState');
+          } catch (e) {
+            console.error('❌ Error al recuperar estado:', e);
+          }
+        }
       } else {
         console.log('❌ Faltan datos para join-game');
       }
@@ -858,6 +891,18 @@ const Game = () => {
       }
       setRound(1);
       setTimer(15);
+    });
+
+    // SINCRONIZAR ESTADO DESPUÉS DE F5
+    newSocket.on('game-state-sync', (data) => {
+      console.log('🔄 Sincronizando estado del juego:', data);
+      setRound(data.round || 1);
+      setTimer(data.timer || 15);
+      setHistory(data.history || []);
+      setPlayers({
+        p1: { name: data.players[0]?.name || players.p1.name, score: data.players[0]?.score || 0 },
+        p2: { name: data.players[1]?.name || players.p2.name, score: data.players[1]?.score || 0 }
+      });
     });
 
     newSocket.on('opponent-moved', (data) => {
@@ -1650,6 +1695,24 @@ const Game = () => {
       processRound(null); // Timeout - Default to betray
     }
   }, [timer, playerHasChosen, showResult, processRound, isOnlineMultiplayer, gameOver]);
+
+  // 💾 Guardar estado del juego en localStorage para recuperación después de F5
+  useEffect(() => {
+    if (isOnlineMultiplayer && !gameOver) {
+      const gameState = {
+        round,
+        timer,
+        history,
+        players,
+        playerHasChosen,
+        showResult,
+        gameOver,
+        finalResult,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('gameState', JSON.stringify(gameState));
+    }
+  }, [round, timer, history, players, playerHasChosen, showResult, gameOver, finalResult, isOnlineMultiplayer]);
 
   const getScoreClass = (status) => {
     if (status === 'win') return 'text-green-400 scale-125';

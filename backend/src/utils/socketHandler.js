@@ -169,6 +169,37 @@ module.exports = (io) => {
       }
     });
 
+    // RECONEXIÓN DESPUÉS DE F5
+    socket.on('player-reconnected', (data) => {
+      const { gameId, round, hasChosen } = data;
+      const game = activeGames.get(gameId);
+
+      if (!game) {
+        console.log('❌ Juego no encontrado para reconexión:', gameId);
+        return;
+      }
+
+      const player = game.players.find(function(p) { return p.id === socket.id; });
+      if (!player) {
+        console.log('❌ Jugador no encontrado para reconexión');
+        return;
+      }
+
+      console.log(`🔄 ${player.name} se reconectó en ronda ${round}, hasChosen: ${hasChosen}`);
+      
+      // Enviar estado actual de la partida al jugador que se reconectó
+      socket.emit('game-state-sync', {
+        gameId: gameId,
+        round: game.round,
+        players: game.players.map(function(p) {
+          return { id: p.id, name: p.name, score: p.score };
+        }),
+        history: game.history,
+        status: game.status,
+        timer: game.timer || 15
+      });
+    });
+
     // ACEPTAR INVITACION
     socket.on('accept-invite', (data) => {
       const { gameId } = data;
