@@ -291,6 +291,79 @@ module.exports = (io) => {
       }
     });
 
+    // SOLICITAR REVANCHA
+    socket.on('request-rematch', (data) => {
+      const { gameId } = data;
+      const game = activeGames.get(gameId);
+
+      if (!game) return;
+
+      const requester = game.players.find(function(p) { return p.id === socket.id; });
+      const opponent = game.players.find(function(p) { return p.id !== socket.id; });
+
+      if (requester && opponent) {
+        console.log(`🔄 ${requester.name} solicita revancha contra ${opponent.name}`);
+        
+        // Enviar notificación al oponente con timer de 30 segundos
+        io.to(opponent.id).emit('rematch-requested', {
+          requesterName: requester.name,
+          requesterSocketId: socket.id,
+          gameId: gameId,
+          timeout: 30 // segundos
+        });
+
+        // Enviar confirmación al que pidió
+        socket.emit('rematch-sent', {
+          opponentName: opponent.name,
+          message: 'Esperando respuesta...'
+        });
+      }
+    });
+
+    // ACEPTAR REVANCHA
+    socket.on('accept-rematch', (data) => {
+      const { gameId, requesterSocketId } = data;
+      const game = activeGames.get(gameId);
+
+      if (!game) return;
+
+      console.log(`✅ Revancha aceptada para ${gameId}`);
+
+      // Reiniciar partida
+      game.round = 1;
+      game.status = 'playing';
+      game.history = [];
+      game.players.forEach(function(p) {
+        p.score = 0;
+        p.move = null;
+        p.betrayalStreak = 0;
+        p.cooperations = 0;
+        p.betrayals = 0;
+      });
+
+      // Notificar a ambos que comienza nueva ronda
+      io.to(gameId).emit('rematch-accepted', {
+        message: '¡NUEVA PARTIDA COMENZANDO!',
+        round: 1,
+        maxRounds: 5
+      });
+
+      // Iniciar timer de la primera ronda
+      startRoundTimer(io, gameId);
+    });
+
+    // RECHAZAR REVANCHA
+    socket.on('reject-rematch', (data) => {
+      const { gameId, requesterSocketId } = data;
+      
+      console.log(`❌ Revancha rechazada para ${gameId}`);
+
+      // Notificar al que pidió
+      io.to(requesterSocketId).emit('rematch-rejected', {
+        message: 'Tu oponente rechazó la revancha'
+      });
+    });
+
     // DESCONEXION
     socket.on('disconnect', () => {
       const player = onlinePlayers.get(socket.id);

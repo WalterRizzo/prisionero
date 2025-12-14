@@ -774,6 +774,11 @@ const Game = () => {
   });
   const [isGoldenRound, setIsGoldenRound] = useState(false);
 
+  // 🔄 REMATCH SYSTEM PARA ONLINE
+  const [rematchRequest, setRematchRequest] = useState(null); // { requesterName, requesterSocketId, gameId, timeout }
+  const [rematchCountdown, setRematchCountdown] = useState(null); // Countdown timer
+  const [rematchSent, setRematchSent] = useState(false); // Si ya solicité rematch
+
   // ==========================================
   // SOCKET.IO PARA MODO ONLINE
   // ==========================================
@@ -826,6 +831,8 @@ const Game = () => {
 
     newSocket.on('game-joined', (data) => {
       console.log('✅ Unido al juego:', data);
+      // Guardar gameId para usar en rematch
+      localStorage.setItem('currentGameId', data.gameId);
       // Actualizar scores si el juego ya empezó
       if (data.players && data.players.length >= 2) {
         setPlayers({
@@ -838,6 +845,10 @@ const Game = () => {
 
     newSocket.on('game-ready', (data) => {
       console.log('🎮 Partida lista!', data);
+      // Guardar gameId para usar en rematch
+      if (data.gameId) {
+        localStorage.setItem('currentGameId', data.gameId);
+      }
       // Actualizar jugadores cuando ambos están conectados
       if (data.players && data.players.length >= 2) {
         setPlayers({
@@ -962,6 +973,82 @@ const Game = () => {
       setGameOver(true);
       setFinalResult('win');
       playVictory();
+    });
+
+    // 🔄 REMATCH LISTENERS
+    newSocket.on('rematch-requested', (data) => {
+      console.log('🔄 Rematch request recibido:', data);
+      playUrgent();
+      setRematchRequest(data);
+      setRematchCountdown(data.timeout);
+      
+      // Iniciar countdown
+      const countdownInterval = setInterval(() => {
+        setRematchCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            setRematchRequest(null);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    });
+
+    newSocket.on('rematch-sent', (data) => {
+      console.log('📤 Rematch request sent:', data);
+      setRematchSent(true);
+      // Mostrar mensaje por 5 segundos
+      setTimeout(() => {
+        setRematchSent(false);
+      }, 5000);
+    });
+
+    newSocket.on('rematch-accepted', (data) => {
+      console.log('✅ Rematch accepted! New game starting');
+      playVictory();
+      // Reset completo para nueva partida
+      setGameOver(false);
+      setFinalResult(null);
+      setRound(1);
+      setTimer(15);
+      setHistory([]);
+      setShowResult(false);
+      setPlayerHasChosen(false);
+      setScoreChanged({ p1: null, p2: null });
+      setComboCount(0);
+      setLastResult({ p1: '', p2: '', text: '', p1ScoreChange: 0 });
+      setPlayers({
+        p1: { name: players.p1.name, score: 0 },
+        p2: { name: players.p2.name, score: 0 }
+      });
+      setP1Reputation(50);
+      setP2Reputation(50);
+      setP1BetrayalStreak(0);
+      setP2BetrayalStreak(0);
+      setP1CooperationStreak(0);
+      setP2CooperationStreak(0);
+      setP1TotalBetrayals(0);
+      setP2TotalBetrayals(0);
+      setP1Honor(0);
+      setP2Honor(0);
+      setLastP2Move(null);
+      setCurrentPlayer(1);
+      setP1Choice(null);
+      setP2Choice(null);
+      setWaitingForP2(false);
+      setRematchRequest(null);
+      setRematchSent(false);
+      // Reset Golden Rounds
+      const golden1 = Math.floor(Math.random() * 4) + 2;
+      const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 2 : null;
+      setGoldenRound([golden1, golden2].filter(Boolean));
+    });
+
+    newSocket.on('rematch-rejected', (data) => {
+      console.log('❌ Rematch rejected:', data);
+      alert(data.message);
+      setRematchSent(false);
     });
 
     // Responder a ping del servidor para mantener conexión viva
@@ -1621,6 +1708,83 @@ const Game = () => {
         {/* ÁREA DEL JUEGO - Centrada */}
         <div className="w-full">
       
+      {/* MODAL DE REMATCH REQUEST */}
+      {rematchRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+          <div className="text-center p-6 sm:p-12 rounded-3xl border-4 border-cyan-500 bg-gradient-to-br from-cyan-900/40 to-slate-900/60 max-w-[95vw] sm:max-w-md animate-pulse">
+            
+            {/* Emoji */}
+            <div className="text-6xl sm:text-8xl mb-4">🔄</div>
+            
+            {/* Titulo */}
+            <h1 className="text-3xl sm:text-5xl font-black text-cyan-400 mb-2 sm:mb-4">
+              ¡REVANCHA!
+            </h1>
+            
+            {/* Nombre del que pidió */}
+            <p className="text-lg sm:text-2xl font-bold text-gray-300 mb-6">
+              {rematchRequest.requesterName} solicita una revancha
+            </p>
+            
+            {/* TIMER COUNTDOWN - Muy visible */}
+            <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-red-500/20 to-red-500/10 border-2 border-red-500">
+              <p className="text-sm text-gray-400 mb-2">⏱️ Tienes</p>
+              <p className={`text-5xl sm:text-7xl font-black ${rematchCountdown <= 5 ? 'text-red-500 animate-bounce' : 'text-cyan-400'} tabular-nums`}>
+                {rematchCountdown}s
+              </p>
+              <p className="text-xs text-gray-500 mt-2">para responder</p>
+            </div>
+            
+            {/* Botones */}
+            <div className="flex gap-3 sm:gap-4 flex-col sm:flex-row">
+              <button
+                onClick={() => {
+                  const gameId = localStorage.getItem('currentGameId');
+                  socket.emit('accept-rematch', { gameId, requesterSocketId: rematchRequest.requesterSocketId });
+                  setRematchRequest(null);
+                }}
+                className="flex-1 px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg sm:text-xl rounded-xl hover:scale-105 transition-transform"
+              >
+                ✅ ACEPTAR
+              </button>
+              <button
+                onClick={() => {
+                  const gameId = localStorage.getItem('currentGameId');
+                  socket.emit('reject-rematch', { gameId, requesterSocketId: rematchRequest.requesterSocketId });
+                  setRematchRequest(null);
+                }}
+                className="flex-1 px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg sm:text-xl rounded-xl hover:scale-105 transition-transform"
+              >
+                ❌ RECHAZAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REMATCH ENVIADO - esperando respuesta */}
+      {rematchSent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+          <div className="text-center p-8 sm:p-12 rounded-3xl border-4 border-cyan-500 bg-gradient-to-br from-cyan-900/40 to-slate-900/60 max-w-[95vw] sm:max-w-md">
+            
+            {/* Emoji */}
+            <div className="text-6xl sm:text-8xl mb-4 animate-bounce">🔄</div>
+            
+            {/* Titulo */}
+            <h1 className="text-3xl sm:text-5xl font-black text-cyan-400 mb-4">
+              Esperando respuesta...
+            </h1>
+            
+            {/* Spinner */}
+            <div className="flex justify-center mb-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+            </div>
+            
+            <p className="text-gray-400 text-sm sm:text-lg">Tu oponente está decidiendo...</p>
+          </div>
+        </div>
+      )}
+      
       {/* PANTALLA DE FIN DE PARTIDA */}
       {gameOver && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
@@ -1695,40 +1859,46 @@ const Game = () => {
               
               <button 
                 onClick={() => {
-                  // Reset completo para REVANCHA
-                  setGameOver(false);
-                  setFinalResult(null);
-                  setRound(1);
-                  setTimer(5);
-                  setHistory([]);
-                  setShowResult(false);
-                  setPlayerHasChosen(false);
-                  setScoreChanged({ p1: null, p2: null });
-                  setComboCount(0);
-                  setLastResult({ p1: '', p2: '', text: '', p1ScoreChange: 0 });
-                  setPlayers({
-                    p1: { name: p1Name, score: 0 },
-                    p2: { name: p2Name, score: 0 }
-                  });
-                  setP1Reputation(50);
-                  setP2Reputation(50);
-                  setP1BetrayalStreak(0);
-                  setP2BetrayalStreak(0);
-                  setP1CooperationStreak(0);
-                  setP2CooperationStreak(0);
-                  setP1TotalBetrayals(0);
-                  setP2TotalBetrayals(0);
-                  setP1Honor(0);
-                  setP2Honor(0);
-                  setLastP2Move(null);
-                  setCurrentPlayer(1);
-                  setP1Choice(null);
-                  setP2Choice(null);
-                  setWaitingForP2(false);
-                  // Reset Golden Rounds
-                  const golden1 = Math.floor(Math.random() * 4) + 2;
-                  const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 2 : null;
-                  setGoldenRound([golden1, golden2].filter(Boolean));
+                  if (isOnlineMultiplayer && socket) {
+                    // En modo ONLINE, enviar evento de rematch request
+                    const gameId = localStorage.getItem('currentGameId');
+                    socket.emit('request-rematch', { gameId });
+                  } else {
+                    // Reset completo para REVANCHA (LOCAL)
+                    setGameOver(false);
+                    setFinalResult(null);
+                    setRound(1);
+                    setTimer(5);
+                    setHistory([]);
+                    setShowResult(false);
+                    setPlayerHasChosen(false);
+                    setScoreChanged({ p1: null, p2: null });
+                    setComboCount(0);
+                    setLastResult({ p1: '', p2: '', text: '', p1ScoreChange: 0 });
+                    setPlayers({
+                      p1: { name: p1Name, score: 0 },
+                      p2: { name: p2Name, score: 0 }
+                    });
+                    setP1Reputation(50);
+                    setP2Reputation(50);
+                    setP1BetrayalStreak(0);
+                    setP2BetrayalStreak(0);
+                    setP1CooperationStreak(0);
+                    setP2CooperationStreak(0);
+                    setP1TotalBetrayals(0);
+                    setP2TotalBetrayals(0);
+                    setP1Honor(0);
+                    setP2Honor(0);
+                    setLastP2Move(null);
+                    setCurrentPlayer(1);
+                    setP1Choice(null);
+                    setP2Choice(null);
+                    setWaitingForP2(false);
+                    // Reset Golden Rounds
+                    const golden1 = Math.floor(Math.random() * 4) + 2;
+                    const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 2 : null;
+                    setGoldenRound([golden1, golden2].filter(Boolean));
+                  }
                 }}
                 className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm sm:text-lg rounded-xl hover:scale-105 transition-transform"
               >
