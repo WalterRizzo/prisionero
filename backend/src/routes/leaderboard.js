@@ -22,7 +22,7 @@ router.get('/top100', async (req, res) => {
     `;
     
     const users = await new Promise((resolve, reject) => {
-      db.db.all(query, (err, rows) => {
+      db.all(query, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
@@ -53,7 +53,7 @@ router.get('/top-score', async (req, res) => {
     `;
     
     const usuarios = await new Promise((resolve, reject) => {
-      db.db.all(query, (err, rows) => {
+      db.all(query, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
@@ -77,7 +77,7 @@ router.get('/top-wins', async (req, res) => {
     `;
     
     const usuarios = await new Promise((resolve, reject) => {
-      db.db.all(query, (err, rows) => {
+      db.all(query, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
@@ -101,7 +101,7 @@ router.get('/top-karma', async (req, res) => {
     `;
     
     const usuarios = await new Promise((resolve, reject) => {
-      db.db.all(query, (err, rows) => {
+      db.all(query, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });

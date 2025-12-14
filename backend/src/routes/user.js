@@ -22,7 +22,7 @@ router.get('/profile/:username', async (req, res) => {
     `;
 
     const user = await new Promise((resolve, reject) => {
-      db.db.get(userQuery, [username], (err, row) => {
+      db.get(userQuery, [username], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -35,7 +35,7 @@ router.get('/profile/:username', async (req, res) => {
     // Obtener achievements del usuario
     const achievQuery = `SELECT achievement_type, unlocked_at FROM achievements WHERE user_id = ?`;
     const achievements = await new Promise((resolve, reject) => {
-      db.db.all(achievQuery, [user.id], (err, rows) => {
+      db.all(achievQuery, [user.id], (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
@@ -62,7 +62,7 @@ router.get('/referral-code/:username', async (req, res) => {
 
     const userQuery = `SELECT id, referral_code FROM users WHERE username = ?`;
     const user = await new Promise((resolve, reject) => {
-      db.db.get(userQuery, [username], (err, row) => {
+      db.get(userQuery, [username], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -79,7 +79,7 @@ router.get('/referral-code/:username', async (req, res) => {
       referralCode = generateReferralCode();
       const updateQuery = `UPDATE users SET referral_code = ? WHERE id = ?`;
       await new Promise((resolve, reject) => {
-        db.db.run(updateQuery, [referralCode, user.id], (err) => {
+        db.run(updateQuery, [referralCode, user.id], (err) => {
           if (err) reject(err);
           else resolve();
         });
@@ -100,7 +100,7 @@ router.get('/achievements/:username', async (req, res) => {
 
     const userQuery = `SELECT id FROM users WHERE username = ?`;
     const user = await new Promise((resolve, reject) => {
-      db.db.get(userQuery, [username], (err, row) => {
+      db.get(userQuery, [username], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -118,7 +118,7 @@ router.get('/achievements/:username', async (req, res) => {
     `;
     
     const achievements = await new Promise((resolve, reject) => {
-      db.db.all(achievQuery, [user.id], (err, rows) => {
+      db.all(achievQuery, [user.id], (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
