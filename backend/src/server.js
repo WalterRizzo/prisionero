@@ -18,6 +18,11 @@ const io = socketIO(server, {
 app.use(cors({ origin: '*' })); // Permitir CORS de cualquier origen
 app.use(express.json());
 
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Prisionero API Server is running' });
+});
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/game", require("./routes/game"));
