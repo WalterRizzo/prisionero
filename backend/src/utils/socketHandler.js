@@ -4,6 +4,7 @@
 // ============================================
 
 const { updateUserStats } = require('./statsHelper');
+const GameMechanicsCalculator = require('./gameMechanics');
 
 // Almacenamiento en memoria (para MVP)
 const onlinePlayers = new Map();
@@ -181,8 +182,8 @@ module.exports = (io) => {
       activeGames.set(gameId, {
         id: gameId,
         players: [
-          { id: invite.from.id, name: invite.from.name, score: 0, move: null },
-          { id: invite.to.id, name: invite.to.name, score: 0, move: null }
+          { id: invite.from.id, name: invite.from.name, score: 0, move: null, betrayalStreak: 0, cooperations: 0, betrayals: 0 },
+          { id: invite.to.id, name: invite.to.name, score: 0, move: null, betrayalStreak: 0, cooperations: 0, betrayals: 0 }
         ],
         round: 1,
         maxRounds: 10,
@@ -401,24 +402,44 @@ module.exports = (io) => {
     var p1Move = p1Timeout ? 'betray' : p1.move;
     var p2Move = p2Timeout ? 'betray' : p2.move;
 
-    // Penalización extra por timeout: -1 punto
-    if (p1Timeout) p1Score -= 1;
-    if (p2Timeout) p2Score -= 1;
+    // Actualizar contadores de cooperación y traición
+    if (p1Move === 'trust') {
+      p1.cooperations++;
+      p1.betrayalStreak = 0;
+    } else {
+      p1.betrayals++;
+      p1.betrayalStreak++;
+    }
 
+    if (p2Move === 'trust') {
+      p2.cooperations++;
+      p2.betrayalStreak = 0;
+    } else {
+      p2.betrayals++;
+      p2.betrayalStreak++;
+    }
+
+    // Calcular multiplicadores por racha de traición
+    var p1BetrayalMult = GameMechanicsCalculator.calculateBetrayalStreakMultiplier(p1.betrayalStreak);
+    var p2BetrayalMult = GameMechanicsCalculator.calculateBetrayalStreakMultiplier(p2.betrayalStreak);
+
+    // Base de puntos según movimientos
     if (p1Move === 'trust' && p2Move === 'trust') {
-      p1Score += 2;
-      p2Score += 2;
+      p1Score = 2;
+      p2Score = 2;
       resultType = 'both-trust';
     } else if (p1Move === 'trust' && p2Move === 'betray') {
-      p1Score += -1;
-      p2Score += 3;
+      p1Score = -1;
+      p2Score = 3;
       resultType = p2Timeout ? 'p2-timeout' : 'p1-betrayed';
     } else if (p1Move === 'betray' && p2Move === 'trust') {
-      p1Score += 3;
-      p2Score += -1;
+      p1Score = 3;
+      p2Score = -1;
       resultType = p1Timeout ? 'p1-timeout' : 'p2-betrayed';
     } else {
       // Ambos traicionan (o timeout)
+      p1Score = 0;
+      p2Score = 0;
       if (p1Timeout && p2Timeout) {
         resultType = 'both-timeout';
       } else if (p1Timeout) {
@@ -430,6 +451,14 @@ module.exports = (io) => {
       }
     }
 
+    // Aplicar multiplicadores por racha de traición
+    p1Score = Math.round(p1Score * p1BetrayalMult);
+    p2Score = Math.round(p2Score * p2BetrayalMult);
+
+    // Penalización extra por timeout: -1 punto
+    if (p1Timeout) p1Score -= 1;
+    if (p2Timeout) p2Score -= 1;
+
     p1.score += p1Score;
     p2.score += p2Score;
 
@@ -440,7 +469,11 @@ module.exports = (io) => {
       p1Score: p1Score,
       p2Score: p2Score,
       p1Timeout: p1Timeout,
-      p2Timeout: p2Timeout
+      p2Timeout: p2Timeout,
+      p1BetrayalStreak: p1.betrayalStreak,
+      p2BetrayalStreak: p2.betrayalStreak,
+      p1BetrayalMult: p1BetrayalMult,
+      p2BetrayalMult: p2BetrayalMult
     });
 
     io.to(game.id).emit('round-result', {

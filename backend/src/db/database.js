@@ -90,6 +90,36 @@ const createTables = () => {
         FOREIGN KEY (referrer_id) REFERENCES users(id)
       )
     `);
+
+    // Crear usuarios de prueba si la tabla está vacía
+    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+      if (!err && row.count === 0) {
+        const testUsers = [
+          { username: 'AlexMaster', email: 'alex@test.com', password: 'test123', total_score: 4850, games_played: 23, games_won: 18, cooperation_rate: 85.5, win_streak: 5 },
+          { username: 'JuanCoop', email: 'juan@test.com', password: 'test123', total_score: 4320, games_played: 21, games_won: 16, cooperation_rate: 92.3, win_streak: 3 },
+          { username: 'MariaStrat', email: 'maria@test.com', password: 'test123', total_score: 3890, games_played: 19, games_won: 14, cooperation_rate: 78.9, win_streak: 2 },
+          { username: 'CarlosBeta', email: 'carlos@test.com', password: 'test123', total_score: 3450, games_played: 18, games_won: 12, cooperation_rate: 75.0, win_streak: 1 },
+          { username: 'SofiaRising', email: 'sofia@test.com', password: 'test123', total_score: 3120, games_played: 16, games_won: 11, cooperation_rate: 88.1, win_streak: 4 },
+          { username: 'LuisGamer', email: 'luis@test.com', password: 'test123', total_score: 2890, games_played: 15, games_won: 9, cooperation_rate: 70.5, win_streak: 0 },
+          { username: 'AnaPro', email: 'ana@test.com', password: 'test123', total_score: 2650, games_played: 14, games_won: 8, cooperation_rate: 82.3, win_streak: 2 },
+          { username: 'RobertoPro', email: 'roberto@test.com', password: 'test123', total_score: 2420, games_played: 13, games_won: 7, cooperation_rate: 76.8, win_streak: 1 },
+          { username: 'CamilaNova', email: 'camila@test.com', password: 'test123', total_score: 2150, games_played: 12, games_won: 6, cooperation_rate: 91.2, win_streak: 3 },
+          { username: 'DiegoFire', email: 'diego@test.com', password: 'test123', total_score: 1890, games_played: 11, games_won: 5, cooperation_rate: 68.9, win_streak: 0 }
+        ];
+
+        testUsers.forEach(user => {
+          db.run(
+            `INSERT INTO users (username, email, password, total_score, games_played, games_won, cooperation_rate, win_streak, referral_code) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [user.username, user.email, user.password, user.total_score, user.games_played, user.games_won, user.cooperation_rate, user.win_streak, `REF-${user.username.toUpperCase()}`],
+            (err) => {
+              if (err) console.error('Error creating test user:', err);
+            }
+          );
+        });
+        console.log('Test users created successfully');
+      }
+    });
   });
 };
 
