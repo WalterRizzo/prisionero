@@ -1,5 +1,6 @@
 // Funciones para actualizar estadísticas y achievements de usuarios
 const db = require('../db/database');
+const XPSystem = require('./xpSystem');
 
 const updateUserStats = async (userId, gameResult) => {
   try {
@@ -8,7 +9,7 @@ const updateUserStats = async (userId, gameResult) => {
     // Obtener usuario actual
     const userQuery = `SELECT * FROM users WHERE id = ?`;
     const user = await new Promise((resolve, reject) => {
-      db.db.get(userQuery, [userId], (err, row) => {
+      db.get(userQuery, [userId], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -25,19 +26,49 @@ const updateUserStats = async (userId, gameResult) => {
     const newTotalScore = user.total_score + score;
     const newCooperationRate = cooperationRate;
 
+    // Calcular XP ganado
+    const xpGained = won ? XPSystem.getXPForVictory(score, cooperationRate) : Math.floor(score / 2);
+
     const updateQuery = `
       UPDATE users 
       SET games_played = ?, games_won = ?, games_lost = ?, 
           total_score = ?, cooperation_rate = ?, favorite_strategy = ?,
-          win_streak = ?, max_win_streak = ?
+          win_streak = ?, max_win_streak = ?, xp_total = xp_total + ?
       WHERE id = ?
     `;
 
     await new Promise((resolve, reject) => {
-      db.db.run(
+      db.run(
         updateQuery,
         [newGamesPlayed, newGamesWon, newGamesLost, newTotalScore, 
-         newCooperationRate, strategy || 'balanced', newWinStreak, newMaxWinStreak, userId],
+         newCooperationRate, strategy || 'balanced', newWinStreak, newMaxWinStreak, xpGained, userId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    // Actualizar nivel basado en XP total
+    const newXPTotal = (user.xp_total || 0) + xpGained;
+    const newLevel = Math.floor(newXPTotal / 1000) + 1;
+    
+    await new Promise((resolve, reject) => {
+      db.run(
+        `UPDATE users SET level = ? WHERE id = ?`,
+        [newLevel, userId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    // Log XP
+    await new Promise((resolve, reject) => {
+      db.run(
+        `INSERT INTO xp_logs (user_id, xp_gained, reason) VALUES (?, ?, ?)`,
+        [userId, xpGained, won ? 'victory' : 'defeat'],
         (err) => {
           if (err) reject(err);
           else resolve();
@@ -51,7 +82,8 @@ const updateUserStats = async (userId, gameResult) => {
       gamesWon: newGamesWon,
       maxWinStreak: newMaxWinStreak,
       cooperationRate: newCooperationRate,
-      totalScore: newTotalScore
+      totalScore: newTotalScore,
+      level: newLevel
     });
 
   } catch (error) {
@@ -88,11 +120,16 @@ const unlockAchievements = async (userId, stats) => {
       achievementsToUnlock.push('comeback-king');
     }
 
+    // Nivel 5 Alcanzado
+    if (stats.level >= 5) {
+      achievementsToUnlock.push('level-5');
+    }
+
     // Insertar achievements desbloqueados
     for (const achievement of achievementsToUnlock) {
       const checkQuery = `SELECT id FROM achievements WHERE user_id = ? AND achievement_type = ?`;
       const exists = await new Promise((resolve, reject) => {
-        db.db.get(checkQuery, [userId, achievement], (err, row) => {
+        db.get(checkQuery, [userId, achievement], (err, row) => {
           if (err) reject(err);
           else resolve(!!row);
         });
@@ -101,7 +138,7 @@ const unlockAchievements = async (userId, stats) => {
       if (!exists) {
         const insertQuery = `INSERT INTO achievements (user_id, achievement_type) VALUES (?, ?)`;
         await new Promise((resolve, reject) => {
-          db.db.run(insertQuery, [userId, achievement], (err) => {
+          db.run(insertQuery, [userId, achievement], (err) => {
             if (err) reject(err);
             else resolve();
           });

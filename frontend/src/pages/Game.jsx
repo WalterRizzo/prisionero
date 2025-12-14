@@ -1695,12 +1695,17 @@ const Game = () => {
               
               <button 
                 onClick={() => {
+                  // Reset completo para REVANCHA
                   setGameOver(false);
+                  setFinalResult(null);
                   setRound(1);
                   setTimer(5);
                   setHistory([]);
                   setShowResult(false);
                   setPlayerHasChosen(false);
+                  setScoreChanged({ p1: null, p2: null });
+                  setComboCount(0);
+                  setLastResult({ p1: '', p2: '', text: '', p1ScoreChange: 0 });
                   setPlayers({
                     p1: { name: p1Name, score: 0 },
                     p2: { name: p2Name, score: 0 }
@@ -1711,6 +1716,8 @@ const Game = () => {
                   setP2BetrayalStreak(0);
                   setP1CooperationStreak(0);
                   setP2CooperationStreak(0);
+                  setP1TotalBetrayals(0);
+                  setP2TotalBetrayals(0);
                   setP1Honor(0);
                   setP2Honor(0);
                   setLastP2Move(null);
@@ -1718,6 +1725,10 @@ const Game = () => {
                   setP1Choice(null);
                   setP2Choice(null);
                   setWaitingForP2(false);
+                  // Reset Golden Rounds
+                  const golden1 = Math.floor(Math.random() * 4) + 2;
+                  const golden2 = Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 2 : null;
+                  setGoldenRound([golden1, golden2].filter(Boolean));
                 }}
                 className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm sm:text-lg rounded-xl hover:scale-105 transition-transform"
               >

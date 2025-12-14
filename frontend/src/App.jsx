@@ -8,6 +8,7 @@ import Game from './pages/Game';
 import Profile from './pages/Profile';
 import Stats from './pages/Stats';
 import Leaderboard from './pages/Leaderboard';
+import DailyChallenge from './pages/DailyChallenge';
 
 import './App.css';
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/game/:id" element={<Game />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/daily" element={<DailyChallenge />} />
         <Route path="/stats" element={<Stats />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

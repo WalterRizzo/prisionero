@@ -36,6 +36,10 @@ const createTables = () => {
         favorite_strategy TEXT DEFAULT 'balanced',
         win_streak INTEGER DEFAULT 0,
         max_win_streak INTEGER DEFAULT 0,
+        xp_total INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        daily_challenge_score INTEGER DEFAULT 0,
+        daily_challenge_date TEXT,
         referral_code TEXT UNIQUE,
         invited_by_code TEXT,
         is_premium INTEGER DEFAULT 0,
@@ -88,6 +92,41 @@ const createTables = () => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         completed_at DATETIME,
         FOREIGN KEY (referrer_id) REFERENCES users(id)
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS daily_challenges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        challenge_date TEXT UNIQUE NOT NULL,
+        description TEXT NOT NULL,
+        difficulty TEXT DEFAULT 'medium',
+        target_score INTEGER DEFAULT 10,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS daily_challenge_scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        challenge_date TEXT NOT NULL,
+        score INTEGER DEFAULT 0,
+        completed INTEGER DEFAULT 0,
+        completed_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        UNIQUE(user_id, challenge_date)
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS xp_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        xp_gained INTEGER NOT NULL,
+        reason TEXT DEFAULT 'victory',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
 

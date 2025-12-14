@@ -7,6 +7,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [achievements, setAchievements] = useState([]);
+  const [xpStats, setXpStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -21,6 +22,7 @@ const Profile = () => {
     }
     fetchProfile();
     fetchAchievements();
+    fetchXPStats();
   }, [username]);
 
   const fetchProfile = async () => {
@@ -46,6 +48,18 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error fetching achievements:', error);
+    }
+  };
+
+  const fetchXPStats = async () => {
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/challenges/stats/${username}`);
+      const data = await response.json();
+      if (data.success) {
+        setXpStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching XP stats:', error);
     }
   };
 
@@ -109,7 +123,19 @@ const Profile = () => {
               className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-400"
             />
             <h1 className="text-4xl font-bold text-white mb-2">{profile.username}</h1>
-            <p className="text-blue-300">Nivel: {Math.floor(profile.total_score / 100) + 1}</p>
+            {xpStats && (
+              <div className="space-y-2">
+                <p className="text-purple-300 font-bold text-2xl">{xpStats.rank}</p>
+                <p className="text-blue-300">Nivel <span className="text-yellow-400 font-bold">{xpStats.level}</span></p>
+                <div className="w-full bg-slate-700 rounded-full h-4 mt-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full"
+                    style={{ width: `${xpStats.progress_percent}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-400">{xpStats.xp_in_level}/{xpStats.xp_needed + xpStats.xp_in_level} XP</p>
+              </div>
+            )}
           </div>
 
           {/* Stats Grid */}

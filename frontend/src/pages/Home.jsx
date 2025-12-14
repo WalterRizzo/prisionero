@@ -79,6 +79,12 @@ const Home = () => {
             ENTRAR A PARTIDA
           </button>
           <button 
+            onClick={() => navigate('/daily')}
+            className="w-full py-4 text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 border border-yellow-500 rounded-xl hover:from-yellow-500 hover:to-orange-500 transition-all"
+          >
+            ⚡ DESAFÍO DIARIO
+          </button>
+          <button 
             onClick={() => navigate('/leaderboard')}
             className="w-full py-4 text-lg font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-yellow-500 transition-all"
           >
