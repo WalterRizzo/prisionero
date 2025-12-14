@@ -1,0 +1,18 @@
+{
+  "name": "prisionero",
+  "version": "1.0.0",
+  "description": "Trust or Betray - Prisoner's Dilemma Game",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=frontend",
+    "deploy:cloudflare": "cd backend && wrangler deploy && cd ../frontend && npm run build && wrangler pages publish dist"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

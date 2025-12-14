@@ -1,0 +1,22 @@
+name = "prisionero-backend"
+type = "service"
+main = "backend/src/server.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "prisionero-backend"
+routes = [
+  { pattern = "api.prisionero.workers.dev", zone_name = "prisionero.workers.dev" }
+]
+
+[build]
+command = "npm install"
+cwd = "./backend"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prisionero"
+database_id = "prisionero-db"
+
+[observability]
+enabled = true

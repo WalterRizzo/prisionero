@@ -1,34 +1,62 @@
-# Prisionero - MVP (Dilema del Prisionero Multijugador)
+# Trust or Betray - Prisoner's Dilemma Game
+
+Un juego online de estrategia basado en el dilema del prisionero con sistema anti-traidor avanzado.
 
 ## Características Implementadas
 
-### Backend (Node.js + Express)
-- ✅ Autenticación JWT (Login/Registro)
-- ✅ Base de datos MongoDB
-- ✅ WebSockets para multijugador en tiempo real
-- ✅ Lógica del juego del Prisionero (Matriz de pagos)
-- ✅ Sistema de rankings (Score, Karma, Victorias)
-- ✅ Gestión de usuarios y estadísticas
+### Backend (Express + Socket.IO)
+- ✅ Multijugador online en tiempo real
+- ✅ Base de datos SQLite
+- ✅ WebSockets para comunicación instantánea
+- ✅ Sistema de puntuación avanzado
+- ✅ Anti-traidor severo (penalizaciones múltiples)
+- ✅ Sistema de honor y reputación
 
 ### Frontend (React + Vite + Tailwind)
-- ✅ Login/Registro
-- ✅ Dashboard con estadísticas personales
-- ✅ Lista de partidas disponibles
-- ✅ Interfaz de juego en tiempo real
-- ✅ Rankings globales
-- ✅ Información educativa sobre el Dilema del Prisionero
+- ✅ Interfaz de juego elegante
+- ✅ Modo Local vs IA (MasterAI v2.0)
+- ✅ Modo Multijugador Online
+- ✅ Avatares dinámicos (DiceBear API)
+- ✅ Combo System y Ronda Dorada
+- ✅ Sonidos con Web Audio API
+- ✅ Responsive Mobile-First
 
-## Instalación y Setup
+## Deploy en Cloudflare
+
+### Requisitos
+- Cuenta en [Cloudflare](https://dash.cloudflare.com)
+- GitHub con este repositorio
+- Node.js 18+
+
+### Pasos Rápidos
+
+1. **Crear repositorio en GitHub** (privado o público)
+2. **Push del código**
+```bash
+git remote add origin https://github.com/TU_USUARIO/prisionero.git
+git branch -M main
+git push -u origin main
+```
+
+3. **En Cloudflare Dashboard:**
+   - Ir a Workers & Pages
+   - Conectar GitHub
+   - Seleccionar repo `prisionero`
+   - Build command: `npm install && npm run build --workspace=frontend`
+   - Build output: `frontend/dist`
+
+## URLs de Deploy
+- **Frontend**: `https://prisionero.pages.dev`
+- **Backend**: Via Socket.IO en Workers (auto-configurado)
+
+## Instalación Local
 
 ### Backend
 ```bash
 cd backend
 npm install
-cp .env.example .env
 npm run dev
 ```
-
-Asegúrate de que MongoDB está corriendo en `localhost:27017`
 
 ### Frontend
 ```bash
@@ -36,18 +64,6 @@ cd frontend
 npm install
 npm run dev
 ```
-
-Accede a `http://localhost:5173`
-
-## Estructura del Proyecto
-
-```
-prisionero/
-├── backend/
-│   ├── src/
-│   │   ├── routes/       (auth, game, user, leaderboard)
-│   │   ├── models/       (User, Game)
-│   │   ├── middleware/   (auth)
 │   │   ├── utils/        (socketHandler)
 │   │   └── server.js
 │   ├── package.json
