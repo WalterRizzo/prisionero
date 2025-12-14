@@ -1,0 +1,12 @@
+name = "prisionero-backend"
+type = "service"
+main = "src/server.js"
+compatibility_date = "2024-01-01"
+
+[[env.production]]
+routes = [
+  { pattern = "prisionero-backend.walterrizzo.workers.dev", zone_name = "walterrizzo.workers.dev" }
+]
+
+[observability]
+enabled = true

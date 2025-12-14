@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Shield, ShieldOff, Handshake, Swords, Wifi } from 'lucide-react';
 import { io } from 'socket.io-client';
 
-// Detectar si estamos en Cloudflare Tunnel o localhost
-const isCloudflare = window.location.hostname.includes('trycloudflare.com');
-const SOCKET_URL = isCloudflare 
-  ? 'https://subject-lafayette-expenses-guy.trycloudflare.com'
+// Detectar si estamos en producción (Cloudflare Pages) o local
+const isProduction = window.location.hostname.includes('pages.dev');
+const SOCKET_URL = isProduction 
+  ? 'https://prisionero-backend.walterrizzo.workers.dev'
   : `http://${window.location.hostname}:5000`;
 
 // --- Web Audio Sound Manager ---
