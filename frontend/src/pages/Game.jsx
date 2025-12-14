@@ -897,6 +897,11 @@ const Game = () => {
       playVictory();
     });
 
+    // Responder a ping del servidor para mantener conexión viva
+    newSocket.on('ping', () => {
+      newSocket.emit('pong');
+    });
+
     setSocket(newSocket);
 
     return () => {

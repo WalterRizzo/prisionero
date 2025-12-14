@@ -12,6 +12,16 @@ const roundTimers = new Map(); // Timers para timeout de rondas
 const ROUND_TIMEOUT = 15000; // 15 segundos para elegir
 
 module.exports = (io) => {
+  // Configurar heartbeat para mantener conexiones vivas
+  io.engine.on('initial_headers', (headers, req) => {
+    headers['Connection'] = 'keep-alive';
+  });
+
+  // Ping periódico a todos los clientes
+  setInterval(() => {
+    io.emit('ping', { timestamp: Date.now() });
+  }, 25000); // cada 25 segundos
+
   io.on('connection', (socket) => {
     console.log('Usuario conectado:', socket.id);
 

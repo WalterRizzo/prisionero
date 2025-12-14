@@ -69,6 +69,11 @@ const Lobby = () => {
       setPendingInvite(null);
     });
 
+    // Responder a ping del servidor para mantener conexión viva
+    newSocket.on('ping', () => {
+      newSocket.emit('pong');
+    });
+
     newSocket.on('game-start', (data) => {
       console.log('🎮 ¡Partida iniciada!', data);
       // Guardar datos del juego incluyendo el socket ID actual
