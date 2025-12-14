@@ -350,7 +350,7 @@ module.exports = (io) => {
       });
       
       // Procesar la ronda inmediatamente
-      console.log('🔄 Procesando ronda 'después de timeout...');
+      console.log('🔄 Procesando ronda después de timeout...');
       processRound(io, game);
     }, ROUND_TIMEOUT);
     
