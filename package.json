@@ -4,8 +4,10 @@
   "description": "Trust or Betray - Prisoner's Dilemma Game",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
-    "start": "cd backend && npm start"
+    "dev": "cd backend && npm run dev",
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install"
   }
 }
+
 
