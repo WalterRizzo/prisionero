@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const isProduction = window.location.hostname.includes('pages.dev');
+const isProduction = window.location.hostname.includes('vercel') || window.location.hostname.includes('pages.dev');
 const SOCKET_URL = isProduction 
   ? 'https://prisionero.onrender.com'
-  : `http://${window.location.hostname}:5000`;
+  : 'http://localhost:5000';
 
 const ArenaClashBattle = () => {
   const navigate = useNavigate();
