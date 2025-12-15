@@ -4,6 +4,7 @@ import { Zap, Trophy, Users } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const isProduction = window.location.hostname.includes('vercel') || window.location.hostname.includes('pages.dev');
+// En producción usa Render, en dev usa localhost
 const SOCKET_URL = isProduction 
   ? 'https://prisionero.onrender.com'
   : 'http://localhost:5000';
