@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const socketIO = require("socket.io");
+const { createClient } = require("redis");
+const { createAdapter } = require("@socket.io/redis-adapter");
 const db = require("./db/database");
 const path = require("path");
 
@@ -14,6 +16,17 @@ const io = socketIO(server, {
     methods: ["GET", "POST"]
   },
   transports: ['websocket'] // Forzar WebSockets
+});
+
+// Configurar Redis Adapter
+const pubClient = createClient({ url: process.env.REDIS_URL });
+const subClient = pubClient.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log("✅ Adaptador de Redis para Socket.IO configurado.");
+}).catch((err) => {
+  console.error("❌ Error al conectar con Redis:", err);
 });
 
 // Middleware
