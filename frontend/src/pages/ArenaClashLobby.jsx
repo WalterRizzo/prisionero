@@ -27,7 +27,7 @@ const ArenaClashLobby = () => {
 
   // Socket.IO connection
   useEffect(() => {
-    const newSocket = io(SOCKET_URL, {
+    const newSocket = io(`${SOCKET_URL}/arena`, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
