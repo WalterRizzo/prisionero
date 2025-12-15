@@ -714,8 +714,8 @@ const Game = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [round, setRound] = useState(1);
-  // Timer: 15 segundos para online, 3 para otros modos
-  const initialTimer = localStorage.getItem('gameMode') === 'online' ? 15 : 5;
+  // Timer: 15 segundos para elegir en todas las rondas (5 rondas totales)
+  const initialTimer = 15;
   const [timer, setTimer] = useState(initialTimer);
   
   // Obtener nombres y modo de juego del localStorage
@@ -1922,16 +1922,23 @@ const Game = () => {
               
               <button 
                 onClick={() => {
-                  if (isOnlineMultiplayer && socket) {
+                  if (isOnlineMultiplayer) {
                     // En modo ONLINE, enviar evento de rematch request
-                    const gameId = localStorage.getItem('currentGameId');
-                    socket.emit('request-rematch', { gameId });
+                    if (socket && socket.connected) {
+                      const gameId = localStorage.getItem('currentGameId');
+                      console.log('📤 Enviando request-rematch con gameId:', gameId);
+                      socket.emit('request-rematch', { gameId });
+                      setRematchSent(true);
+                    } else {
+                      alert('⚠️ No estás conectado. Recargando...');
+                      window.location.reload();
+                    }
                   } else {
                     // Reset completo para REVANCHA (LOCAL)
                     setGameOver(false);
                     setFinalResult(null);
                     setRound(1);
-                    setTimer(5);
+                    setTimer(15); // 15 segundos para que ambos jugadores elijan
                     setHistory([]);
                     setShowResult(false);
                     setPlayerHasChosen(false);
