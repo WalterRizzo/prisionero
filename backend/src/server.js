@@ -18,16 +18,20 @@ const io = socketIO(server, {
   transports: ['websocket'] // Forzar WebSockets
 });
 
-// Configurar Redis Adapter
-const pubClient = createClient({ url: process.env.REDIS_URL });
-const subClient = pubClient.duplicate();
+// Configurar Redis Adapter solo si REDIS_URL está disponible
+if (process.env.REDIS_URL) {
+  const pubClient = createClient({ url: process.env.REDIS_URL });
+  const subClient = pubClient.duplicate();
 
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log("✅ Adaptador de Redis para Socket.IO configurado.");
-}).catch((err) => {
-  console.error("❌ Error al conectar con Redis:", err);
-});
+  Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("✅ Adaptador de Redis para Socket.IO configurado.");
+  }).catch((err) => {
+    console.error("❌ Error al conectar con Redis:", err);
+  });
+} else {
+  console.warn("⚠️ REDIS_URL no encontrada. Socket.IO funcionará en modo de instancia única.");
+}
 
 // Middleware
 app.use(cors({ origin: '*' })); // Permitir CORS de cualquier origen

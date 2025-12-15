@@ -96,6 +96,18 @@ const createTables = () => {
     `);
 
     db.run(`
+      CREATE TABLE IF NOT EXISTS arena_clash_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        elo INTEGER DEFAULT 1000,
+        wins INTEGER DEFAULT 0,
+        losses INTEGER DEFAULT 0,
+        winrate REAL DEFAULT 0.0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    db.run(`
       CREATE TABLE IF NOT EXISTS daily_challenges (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         challenge_date TEXT UNIQUE NOT NULL,

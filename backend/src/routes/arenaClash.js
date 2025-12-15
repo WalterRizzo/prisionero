@@ -26,7 +26,7 @@ router.get('/profile/:username', (req, res) => {
       elo: user.elo,
       wins: user.wins,
       losses: user.losses,
-      winrate: user.winrate.toFixed(2),
+      winrate: user.winrate ? user.winrate.toFixed(2) : '0.00',
       totalMatches: stats.total_matches || 0
     });
   } catch (err) {
