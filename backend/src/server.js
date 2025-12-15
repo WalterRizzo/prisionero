@@ -39,6 +39,8 @@ app.use("/api/arena", require("./routes/arenaClash"));
 
 // Socket.IO Events
 require("./utils/socketHandler")(io);
+const { setupArenaClashEvents } = require("./utils/arenaClashSocket");
+setupArenaClashEvents(io);
 
 // Error handling
 app.use((err, req, res, next) => {

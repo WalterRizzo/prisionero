@@ -1,26 +1,83 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Trophy, Users } from 'lucide-react';
+import { io } from 'socket.io-client';
+
+const isProduction = window.location.hostname.includes('pages.dev');
+const SOCKET_URL = isProduction 
+  ? 'https://prisionero.onrender.com'
+  : `http://${window.location.hostname}:5000`;
 
 const ArenaClashLobby = () => {
   const navigate = useNavigate();
   const [isSearching, setIsSearching] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
-  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [queuePosition, setQueuePosition] = useState(null);
 
   useEffect(() => {
     // Cargar perfil del usuario
     const username = localStorage.getItem('player1Name') || 'Player';
+    const userId = localStorage.getItem('userId') || 'guest_' + Date.now();
     fetchUserProfile(username);
+    localStorage.setItem('userId', userId);
   }, []);
+
+  // Socket.IO connection
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10
+    });
+
+    newSocket.on('connect', () => {
+      console.log('✅ Conectado al servidor Arena');
+    });
+
+    // Evento: Se encontró rival
+    newSocket.on('match-found', (data) => {
+      console.log('🎮 ¡RIVAL ENCONTRADO!', data);
+      setIsSearching(false);
+      
+      // Guardar datos de la partida
+      localStorage.setItem('currentArenaMatch', JSON.stringify({
+        matchId: data.matchId,
+        opponentName: data.opponentName,
+        opponentElo: data.opponentElo
+      }));
+      
+      // Navegar a la batalla
+      navigate('/arena/battle');
+    });
+
+    // Evento: Posición en la cola
+    newSocket.on('queue-joined', (data) => {
+      console.log('📍 En la cola:', data);
+      setQueuePosition(data.queuePosition);
+    });
+
+    newSocket.on('error', (data) => {
+      console.error('❌ Error:', data);
+      alert(data.message);
+      setIsSearching(false);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [navigate]);
 
   const fetchUserProfile = async (username) => {
     try {
       const response = await fetch(`https://prisionero.onrender.com/api/arena/profile/${username}`);
       
       if (response.status === 404) {
-        // Crear nuevo usuario Arena Clash
         const userId = localStorage.getItem('userId') || 'guest_' + Date.now();
         await fetch('https://prisionero.onrender.com/api/arena/user/create', {
           method: 'POST',
@@ -28,7 +85,6 @@ const ArenaClashLobby = () => {
           body: JSON.stringify({ userId, username })
         });
         
-        // Cargar nuevamente
         const retryResponse = await fetch(`https://prisionero.onrender.com/api/arena/profile/${username}`);
         const data = await retryResponse.json();
         setUserProfile(data);
@@ -44,21 +100,29 @@ const ArenaClashLobby = () => {
   };
 
   const handleQuickMatch = () => {
+    if (!socket || !socket.connected) {
+      alert('⚠️ No estás conectado. Espera un momento...');
+      return;
+    }
+
+    if (!userProfile) {
+      alert('⚠️ Cargando perfil... intenta de nuevo');
+      return;
+    }
+
     setIsSearching(true);
-    
-    // Simular búsqueda de rival (en prod sería Socket.IO)
-    const timeout = setTimeout(() => {
-      setIsSearching(false);
-      // Navegar a la batalla
-      navigate('/arena/battle');
-    }, 3000 + Math.random() * 3000); // 3-6 segundos de espera
-    
-    setSearchTimeout(timeout);
+
+    // Emitir evento para unirse a la cola
+    socket.emit('queue-for-match', {
+      username: userProfile.username,
+      elo: userProfile.elo,
+      userId: localStorage.getItem('userId')
+    });
   };
 
   const handleCancelSearch = () => {
-    if (searchTimeout) clearTimeout(searchTimeout);
     setIsSearching(false);
+    setQueuePosition(null);
   };
 
   if (loading) {
@@ -136,6 +200,9 @@ const ArenaClashLobby = () => {
                   <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
                 </div>
                 <p className="text-cyan-400 font-bold animate-pulse">Buscando rival...</p>
+                {queuePosition && (
+                  <p className="text-gray-400 text-sm">Posición en cola: {queuePosition}</p>
+                )}
                 <button
                   onClick={handleCancelSearch}
                   className="w-full py-3 bg-red-500/50 text-white font-bold rounded-lg hover:bg-red-600/50 transition"
