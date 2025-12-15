@@ -9,6 +9,9 @@ import Profile from './pages/Profile';
 import Stats from './pages/Stats';
 import Leaderboard from './pages/Leaderboard';
 import DailyChallenge from './pages/DailyChallenge';
+import ArenaClashLobby from './pages/ArenaClashLobby';
+import ArenaClashBattle from './pages/ArenaClashBattle';
+import ArenaClashLeaderboard from './pages/ArenaClashLeaderboard';
 
 import './App.css';
 
@@ -23,6 +26,12 @@ function App() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/daily" element={<DailyChallenge />} />
         <Route path="/stats" element={<Stats />} />
+        
+        {/* Arena Clash Routes */}
+        <Route path="/arena" element={<ArenaClashLobby />} />
+        <Route path="/arena/battle" element={<ArenaClashBattle />} />
+        <Route path="/arena/leaderboard" element={<ArenaClashLeaderboard />} />
+        
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

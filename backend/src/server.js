@@ -35,6 +35,7 @@ app.use("/api/game", require("./routes/game"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/leaderboard", require("./routes/leaderboard"));
 app.use("/api/challenges", require("./routes/challenges"));
+app.use("/api/arena", require("./routes/arenaClash"));
 
 // Socket.IO Events
 require("./utils/socketHandler")(io);

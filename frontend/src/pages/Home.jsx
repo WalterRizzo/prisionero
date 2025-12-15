@@ -79,6 +79,12 @@ const Home = () => {
             ENTRAR A PARTIDA
           </button>
           <button 
+            onClick={() => navigate('/arena')}
+            className="w-full py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-cyan-600 border border-cyan-500 rounded-xl hover:from-purple-500 hover:to-cyan-500 transition-all"
+          >
+            ⚔️ ARENA CLASH
+          </button>
+          <button 
             onClick={() => navigate('/daily')}
             className="w-full py-4 text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 border border-yellow-500 rounded-xl hover:from-yellow-500 hover:to-orange-500 transition-all"
           >

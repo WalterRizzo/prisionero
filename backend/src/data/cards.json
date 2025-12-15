@@ -1,0 +1,225 @@
+{
+  "cards": [
+    {
+      "id": 1,
+      "name": "Espadachín",
+      "emoji": "🗡️",
+      "mana": 3,
+      "damage": 4,
+      "health": 3,
+      "type": "soldado",
+      "rarity": "común",
+      "description": "Atacante melee básico"
+    },
+    {
+      "id": 2,
+      "name": "Arquero",
+      "emoji": "🏹",
+      "mana": 2,
+      "damage": 3,
+      "health": 2,
+      "type": "soldado",
+      "rarity": "común",
+      "description": "Dispara desde distancia"
+    },
+    {
+      "id": 3,
+      "name": "Mago",
+      "emoji": "🧙",
+      "mana": 4,
+      "damage": 5,
+      "health": 2,
+      "type": "mago",
+      "rarity": "raro",
+      "description": "Daño mágico alto"
+    },
+    {
+      "id": 4,
+      "name": "Goblin",
+      "emoji": "👹",
+      "mana": 2,
+      "damage": 2,
+      "health": 2,
+      "type": "criatura",
+      "rarity": "común",
+      "description": "Rápido y débil"
+    },
+    {
+      "id": 5,
+      "name": "Dragón",
+      "emoji": "🐉",
+      "mana": 7,
+      "damage": 8,
+      "health": 6,
+      "type": "legendario",
+      "rarity": "épico",
+      "description": "Poderoso pero caro"
+    },
+    {
+      "id": 6,
+      "name": "Muro",
+      "emoji": "🏰",
+      "mana": 5,
+      "damage": 0,
+      "health": 8,
+      "type": "defensa",
+      "rarity": "raro",
+      "description": "Pura defensa"
+    },
+    {
+      "id": 7,
+      "name": "Hielo",
+      "emoji": "❄️",
+      "mana": 2,
+      "damage": 0,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "común",
+      "description": "Congela enemigos por 1 turno",
+      "effect": "freeze"
+    },
+    {
+      "id": 8,
+      "name": "Dinamita",
+      "emoji": "💣",
+      "mana": 3,
+      "damage": 5,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "común",
+      "description": "Daño directo a todos"
+    },
+    {
+      "id": 9,
+      "name": "Rayo",
+      "emoji": "⚡",
+      "mana": 4,
+      "damage": 6,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "épico",
+      "description": "Daño instantáneo masivo"
+    },
+    {
+      "id": 10,
+      "name": "Retraso",
+      "emoji": "⏱️",
+      "mana": 3,
+      "damage": 0,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "raro",
+      "description": "Retrasa acción del rival 2 segundos"
+    },
+    {
+      "id": 11,
+      "name": "Caballero",
+      "emoji": "🛡️",
+      "mana": 4,
+      "damage": 3,
+      "health": 5,
+      "type": "soldado",
+      "rarity": "raro",
+      "description": "Equilibrio ataque-defensa"
+    },
+    {
+      "id": 12,
+      "name": "Sacerdote",
+      "emoji": "⛪",
+      "mana": 4,
+      "damage": 2,
+      "health": 4,
+      "type": "soporte",
+      "rarity": "raro",
+      "description": "Cura aliados"
+    },
+    {
+      "id": 13,
+      "name": "Gigante",
+      "emoji": "👹",
+      "mana": 6,
+      "damage": 7,
+      "health": 7,
+      "type": "criatura",
+      "rarity": "épico",
+      "description": "Muy grande, muy fuerte"
+    },
+    {
+      "id": 14,
+      "name": "Vampiro",
+      "emoji": "🧛",
+      "mana": 5,
+      "damage": 4,
+      "health": 4,
+      "type": "oscuro",
+      "rarity": "raro",
+      "description": "Drena vidas"
+    },
+    {
+      "id": 15,
+      "name": "Fénix",
+      "emoji": "🔥",
+      "mana": 6,
+      "damage": 5,
+      "health": 3,
+      "type": "mágico",
+      "rarity": "épico",
+      "description": "Resucita si muere"
+    },
+    {
+      "id": 16,
+      "name": "Curación",
+      "emoji": "❤️",
+      "mana": 3,
+      "damage": 0,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "común",
+      "description": "Restaura 5 vidas"
+    },
+    {
+      "id": 17,
+      "name": "Espada Mágica",
+      "emoji": "✨",
+      "mana": 2,
+      "damage": 2,
+      "health": 1,
+      "type": "objeto",
+      "rarity": "común",
+      "description": "+1 daño a todas cartas"
+    },
+    {
+      "id": 18,
+      "name": "Escudo de Fuego",
+      "emoji": "🛡️",
+      "mana": 2,
+      "damage": 1,
+      "health": 3,
+      "type": "objeto",
+      "rarity": "común",
+      "description": "+2 defensa"
+    },
+    {
+      "id": 19,
+      "name": "Invocación",
+      "emoji": "🌙",
+      "mana": 5,
+      "damage": 3,
+      "health": 3,
+      "type": "hechizo",
+      "rarity": "raro",
+      "description": "Invoca 2 goblins gratis"
+    },
+    {
+      "id": 20,
+      "name": "Equilibrio",
+      "emoji": "⚖️",
+      "mana": 4,
+      "damage": 0,
+      "health": 0,
+      "type": "hechizo",
+      "rarity": "épico",
+      "description": "Iguala vidas de ambos"
+    }
+  ]
+}

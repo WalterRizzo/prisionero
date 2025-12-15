@@ -44,6 +44,48 @@ db.exec(`
     FOREIGN KEY (game_id) REFERENCES games(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS arena_clash_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE NOT NULL,
+    username TEXT NOT NULL,
+    elo INTEGER DEFAULT 1500,
+    wins INTEGER DEFAULT 0,
+    losses INTEGER DEFAULT 0,
+    winrate REAL DEFAULT 0,
+    deck_slots TEXT DEFAULT '[]',
+    current_deck_id INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS arena_clash_matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id TEXT UNIQUE NOT NULL,
+    player1_id INTEGER NOT NULL,
+    player2_id INTEGER NOT NULL,
+    winner_id INTEGER,
+    duration_seconds INTEGER,
+    p1_health_remaining INTEGER,
+    p2_health_remaining INTEGER,
+    p1_elo_change INTEGER,
+    p2_elo_change INTEGER,
+    status TEXT DEFAULT 'playing',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    finished_at DATETIME,
+    FOREIGN KEY (player1_id) REFERENCES arena_clash_users(id),
+    FOREIGN KEY (player2_id) REFERENCES arena_clash_users(id),
+    FOREIGN KEY (winner_id) REFERENCES arena_clash_users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS arena_clash_replays (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id TEXT NOT NULL,
+    moves TEXT NOT NULL,
+    winner_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES arena_clash_matches(match_id)
+  );
 `);
 
 module.exports = db;
