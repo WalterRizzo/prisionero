@@ -3,16 +3,9 @@
   "version": "1.0.0",
   "description": "Trust or Betray - Prisoner's Dilemma Game",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
-    "build": "npm ci --prefix frontend && npm run build --prefix frontend",
-    "deploy:cloudflare": "cd backend && wrangler deploy && cd ../frontend && npm run build && wrangler pages publish dist"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+    "start": "cd backend && npm start"
   }
 }
+
