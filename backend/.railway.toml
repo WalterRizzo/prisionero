@@ -1,6 +1,0 @@
-[build]
-builder = "nix"
-buildpacks = ["heroku/nodejs"]
-
-[deploy]
-startCommand = "npm start"
