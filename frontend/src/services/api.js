@@ -3,7 +3,7 @@ import axios from 'axios';
 const isLocalhost = window.location.hostname.includes('localhost');
 const API_BASE_URL = isLocalhost 
   ? 'http://localhost:5000/api' 
-  : 'https://prisionero-backend-production.up.railway.app/api';
+  : '/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL

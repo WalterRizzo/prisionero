@@ -7,7 +7,7 @@ import { io } from 'socket.io-client';
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const SOCKET_URL = isLocalhost 
   ? 'http://localhost:5000'
-  : 'https://prisionero-backend-production.up.railway.app';
+  : '';
 
 const ArenaClashLobby = () => {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ const ArenaClashLobby = () => {
   const fetchUserProfile = async (username) => {
     try {
       const isLocalhost = window.location.hostname.includes('localhost');
-      const BASE_URL = isLocalhost ? 'http://localhost:5000' : 'https://prisionero-backend-production.up.railway.app';
+      const BASE_URL = isLocalhost ? 'http://localhost:5000' : '';
 
       const response = await fetch(`${BASE_URL}/api/arena/profile/${username}`);
       

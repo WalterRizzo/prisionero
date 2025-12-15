@@ -16,7 +16,7 @@ const ArenaClashLeaderboard = () => {
     try {
       setLoading(true);
       const isLocalhost = window.location.hostname.includes('localhost');
-      const BASE_URL = isLocalhost ? 'http://localhost:5000' : 'https://prisionero-backend-production.up.railway.app';
+      const BASE_URL = isLocalhost ? 'http://localhost:5000' : '';
       const response = await fetch(
         `${BASE_URL}/api/arena/leaderboard?period=${period}&limit=100`
       );

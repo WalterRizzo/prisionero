@@ -4,6 +4,7 @@ const cors = require("cors");
 const http = require("http");
 const socketIO = require("socket.io");
 const db = require("./db/database");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
@@ -18,6 +19,7 @@ const io = socketIO(server, {
 // Middleware
 app.use(cors({ origin: '*' })); // Permitir CORS de cualquier origen
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../../frontend/dist'))); // Servir archivos estáticos del frontend
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -36,6 +38,11 @@ app.use("/api/arena", require("./routes/arenaClash"));
 require("./utils/socketHandler")(io);
 const { setupArenaClashEvents } = require("./utils/arenaClashSocket");
 setupArenaClashEvents(io);
+
+// Manejar rutas de SPA: redirigir todo lo demás a index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
+});
 
 // Error handling
 app.use((err, req, res, next) => {
