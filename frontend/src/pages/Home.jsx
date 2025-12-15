@@ -30,8 +30,8 @@ const Home = () => {
         
         {/* Main Call to Action */}
         <div className="text-center mb-10">
-          <h1 className="text-7xl md:text-8xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">TRUST<br/>OR<br/>BETRAY</h1>
-          <p className="text-gray-300 text-xl md:text-2xl mb-8">The ultimate game of deception.<br/>Every choice has consequences.</p>
+          <h1 className="text-7xl md:text-8xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">ARENA<br/>CLASH</h1>
+          <p className="text-gray-300 text-xl md:text-2xl mb-8">Batalla rápida. Competencia feroz. Sube ELO.<br/>30-45 segundos de puro caos.</p>
           <Link
             to="/lobby"
             className="w-full max-w-md mx-auto block text-center py-5 text-2xl font-black bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-[0_0_30px_rgba(0,224,255,0.6)] hover:scale-105 transition-all duration-300"
