@@ -30,11 +30,14 @@ const ArenaClashLobby = () => {
   // Socket.IO connection
   useEffect(() => {
     const newSocket = io(`${SOCKET_URL}/arena`, {
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'], // Forzar WebSockets
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 10
+      reconnectionAttempts: 10,
+      query: {
+        username: localStorage.getItem('player1Name') || 'Player'
+      }
     });
 
     newSocket.on('connect', () => {

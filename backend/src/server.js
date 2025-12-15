@@ -10,14 +10,9 @@ const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
-    allowEIO3: true,
-    transports: ['websocket', 'polling']
+    methods: ["GET", "POST"]
   },
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5
+  transports: ['websocket'] // Forzar WebSockets
 });
 
 // Middleware
