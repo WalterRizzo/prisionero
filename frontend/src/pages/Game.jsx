@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Shield, ShieldOff, Handshake, Swords, Wifi } from 'lucide-react';
 import { io } from 'socket.io-client';
 
-// Detectar si estamos en producción (Cloudflare Pages) o local
-const isProduction = window.location.hostname.includes('pages.dev');
-const SOCKET_URL = isProduction 
-  ? 'https://prisionero.onrender.com'
-  : `http://${window.location.hostname}:5000`;
+// Detectar si estamos en producción o local
+const isLocalhost = window.location.hostname.includes('localhost');
+const SOCKET_URL = isLocalhost 
+  ? 'http://localhost:5000' 
+  : 'https://prisionero-backend-production.up.railway.app';
 
 // --- Web Audio Sound Manager ---
 const AudioContext = window.AudioContext || window.webkitAudioContext;
