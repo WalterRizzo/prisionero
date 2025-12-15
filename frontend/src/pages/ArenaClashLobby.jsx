@@ -17,6 +17,7 @@ const ArenaClashLobby = () => {
   const [loading, setLoading] = useState(true);
   const [queuePosition, setQueuePosition] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     // Cargar perfil del usuario
@@ -48,6 +49,7 @@ const ArenaClashLobby = () => {
 
     newSocket.on('connect_error', (err) => {
       console.error('⚠️ Error de conexión:', err);
+      setDebugInfo(`Error: ${err.message}`);
       setIsConnected(false);
     });
 
@@ -163,6 +165,11 @@ const ArenaClashLobby = () => {
             <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">
               {isConnected ? 'ONLINE' : 'OFFLINE'}
             </span>
+          {debugInfo && (
+            <div className="text-xs text-red-400 font-mono mb-2 bg-black/50 p-2 rounded">
+              {debugInfo} | Target: {SOCKET_URL}
+            </div>
+          )}
           </div>
           <h1 className="text-5xl font-black mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
             ⚔️ ARENA CLASH
