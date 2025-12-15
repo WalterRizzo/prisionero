@@ -71,31 +71,34 @@ const Home = () => {
         </div>
 
         {/* Bottom Buttons */}
-        <div className="grid grid-cols-2 gap-6">
-          <button 
-            onClick={() => navigate('/lobby')}
-            className="w-full py-4 text-lg font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-cyan-500 transition-all"
-          >
-            ENTRAR A PARTIDA
-          </button>
+        <div className="space-y-3">
           <button 
             onClick={() => navigate('/arena')}
-            className="w-full py-4 text-lg font-bold bg-gradient-to-r from-purple-600 to-cyan-600 border border-cyan-500 rounded-xl hover:from-purple-500 hover:to-cyan-500 transition-all"
+            className="w-full py-5 text-xl font-black bg-gradient-to-r from-purple-600 to-pink-600 border-2 border-purple-400 rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg"
           >
-            ⚔️ ARENA CLASH
+            ⚔️ ARENA CLASH - JUGAR AHORA
           </button>
-          <button 
-            onClick={() => navigate('/daily')}
-            className="w-full py-4 text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 border border-yellow-500 rounded-xl hover:from-yellow-500 hover:to-orange-500 transition-all"
-          >
-            ⚡ DESAFÍO DIARIO
-          </button>
-          <button 
-            onClick={() => navigate('/leaderboard')}
-            className="w-full py-4 text-lg font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-yellow-500 transition-all"
-          >
-            🏆 RANKING
-          </button>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => navigate('/lobby')}
+              className="w-full py-3 text-sm font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-cyan-500 transition-all"
+            >
+              ENTRAR A PARTIDA
+            </button>
+            <button 
+              onClick={() => navigate('/daily')}
+              className="w-full py-3 text-sm font-bold bg-gradient-to-r from-yellow-600 to-orange-600 border border-yellow-500 rounded-xl hover:from-yellow-500 hover:to-orange-500 transition-all"
+            >
+              ⚡ DESAFÍO DIARIO
+            </button>
+            <button 
+              onClick={() => navigate('/leaderboard')}
+              className="w-full py-3 text-sm font-bold bg-slate-800/80 border border-slate-600 rounded-xl hover:bg-slate-700 hover:border-yellow-500 transition-all col-span-2"
+            >
+              🏆 RANKING
+            </button>
+          </div>
         </div>
 
       </div>
