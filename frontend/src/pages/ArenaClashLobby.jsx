@@ -16,6 +16,7 @@ const ArenaClashLobby = () => {
   const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [queuePosition, setQueuePosition] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     // Cargar perfil del usuario
@@ -37,6 +38,17 @@ const ArenaClashLobby = () => {
 
     newSocket.on('connect', () => {
       console.log('✅ Conectado al servidor Arena');
+      setIsConnected(true);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('❌ Desconectado del servidor Arena');
+      setIsConnected(false);
+    });
+
+    newSocket.on('connect_error', (err) => {
+      console.error('⚠️ Error de conexión:', err);
+      setIsConnected(false);
     });
 
     // Evento: Se encontró rival
@@ -135,7 +147,13 @@ const ArenaClashLobby = () => {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white text-xl font-bold">Cargando Arena...</p>
-        </div>
+        </ddiv className="flex items-center justify-center gap-2 mb-2">
+            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
+            <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">
+              {isConnected ? 'ONLINE' : 'OFFLINE'}
+            </span>
+          </div>
+          <iv>
       </div>
     );
   }
