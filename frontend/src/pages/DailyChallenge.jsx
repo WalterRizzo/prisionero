@@ -7,9 +7,10 @@ const DailyChallenge = () => {
   const [loading, setLoading] = useState(true);
   const [userScore, setUserScore] = useState(0);
   
-  const SOCKET_URL = window.location.hostname.includes('pages.dev')
-    ? 'https://prisionero.onrender.com'
-    : `http://${window.location.hostname}:5000`;
+  const isLocalhost = window.location.hostname.includes('localhost');
+  const SOCKET_URL = isLocalhost
+    ? 'http://localhost:5000'
+    : 'https://prisionero-backend-production.up.railway.app';
 
   useEffect(() => {
     fetchChallenge();

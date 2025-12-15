@@ -19,7 +19,9 @@ export const useAuthStore = create((set) => ({
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const isLocalhost = window.location.hostname.includes('localhost');
+      const BASE_URL = isLocalhost ? 'http://localhost:5000' : 'https://prisionero-backend-production.up.railway.app';
+      const response = await fetch(`${BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

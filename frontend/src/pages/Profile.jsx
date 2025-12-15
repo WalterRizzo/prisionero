@@ -11,9 +11,10 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const SOCKET_URL = window.location.hostname.includes('pages.dev')
-    ? 'https://prisionero.onrender.com'
-    : `http://${window.location.hostname}:5000`;
+  const isLocalhost = window.location.hostname.includes('localhost');
+  const SOCKET_URL = isLocalhost
+    ? 'http://localhost:5000'
+    : 'https://prisionero-backend-production.up.railway.app';
 
   useEffect(() => {
     if (!username) {

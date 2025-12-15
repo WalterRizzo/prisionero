@@ -76,17 +76,20 @@ const ArenaClashLobby = () => {
 
   const fetchUserProfile = async (username) => {
     try {
-      const response = await fetch(`https://prisionero.onrender.com/api/arena/profile/${username}`);
+      const isLocalhost = window.location.hostname.includes('localhost');
+      const BASE_URL = isLocalhost ? 'http://localhost:5000' : 'https://prisionero-backend-production.up.railway.app';
+
+      const response = await fetch(`${BASE_URL}/api/arena/profile/${username}`);
       
       if (response.status === 404) {
         const userId = localStorage.getItem('userId') || 'guest_' + Date.now();
-        await fetch('https://prisionero.onrender.com/api/arena/user/create', {
+        await fetch(`${BASE_URL}/api/arena/user/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, username })
         });
         
-        const retryResponse = await fetch(`https://prisionero.onrender.com/api/arena/profile/${username}`);
+        const retryResponse = await fetch(`${BASE_URL}/api/arena/profile/${username}`);
         const data = await retryResponse.json();
         setUserProfile(data);
       } else {

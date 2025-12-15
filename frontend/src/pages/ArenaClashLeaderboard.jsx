@@ -15,8 +15,10 @@ const ArenaClashLeaderboard = () => {
   const fetchLeaderboard = async () => {
     try {
       setLoading(true);
+      const isLocalhost = window.location.hostname.includes('localhost');
+      const BASE_URL = isLocalhost ? 'http://localhost:5000' : 'https://prisionero-backend-production.up.railway.app';
       const response = await fetch(
-        `https://prisionero.onrender.com/api/arena/leaderboard?period=${period}&limit=100`
+        `${BASE_URL}/api/arena/leaderboard?period=${period}&limit=100`
       );
       const data = await response.json();
       setLeaderboard(data);
