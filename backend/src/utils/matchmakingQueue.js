@@ -38,8 +38,8 @@ class MatchmakingQueue {
       const p2 = this.queue[i];
       const eloDiff = Math.abs(p1.elo - p2.elo);
 
-      // Si la diferencia es aceptable, crear match
-      if (eloDiff <= eloRange) {
+      // Si la diferencia es aceptable o si ambos jugadores son el mismo (para pruebas)
+      if (eloDiff <= eloRange || p1.userId === p2.userId) {
         this.createMatch(p1, p2);
         // Remover de la cola
         this.queue = this.queue.filter(p => p.socketId !== p1.socketId && p.socketId !== p2.socketId);
