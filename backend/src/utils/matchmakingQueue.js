@@ -26,35 +26,22 @@ class MatchmakingQueue {
 
   // Intentar emparejar jugadores
   tryMatchmake() {
-    if (this.queue.length < 2) return;
+    // Mientras haya al menos 2 jugadores, crea partidas
+    while (this.queue.length >= 2) {
+      // Ordenar por tiempo de llegada para ser justos (First-In, First-Out)
+      this.queue.sort((a, b) => a.joinedAt - b.joinedAt);
 
-    // Ordenar por ELO
-    this.queue.sort((a, b) => a.elo - b.elo);
+      const p1 = this.queue.shift(); // Saca al primer jugador
+      const p2 = this.queue.shift(); // Saca al segundo jugador
 
-    const p1 = this.queue[0];
-    const eloRange = 150; // Diferencia máxima de ELO permitida
-
-    for (let i = 1; i < this.queue.length; i++) {
-      const p2 = this.queue[i];
-      const eloDiff = Math.abs(p1.elo - p2.elo);
-
-      // Si la diferencia es aceptable o si ambos jugadores son el mismo (para pruebas)
-      if (eloDiff <= eloRange || p1.userId === p2.userId) {
-        this.createMatch(p1, p2);
-        // Remover de la cola
-        this.queue = this.queue.filter(p => p.socketId !== p1.socketId && p.socketId !== p2.socketId);
-        // Reintentar con los que sobran
-        this.tryMatchmake();
-        return;
+      // Salvaguarda: si por alguna razón son el mismo socket, devolver uno a la cola y esperar.
+      if (p1.socketId === p2.socketId) {
+        this.queue.unshift(p1);
+        break; 
       }
-    }
 
-    // Si no hay match después de 30 segundos, ampliar rango
-    if (p1.joinedAt < Date.now() - 30000) {
-      const p2 = this.queue[1];
       this.createMatch(p1, p2);
-      this.queue = this.queue.filter(p => p.socketId !== p1.socketId && p.socketId !== p2.socketId);
-      this.tryMatchmake();
+      console.log(`Partida creada. Jugadores restantes en cola: ${this.queue.length}`);
     }
   }
 
