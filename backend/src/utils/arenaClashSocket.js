@@ -50,36 +50,11 @@ const setupArenaClashEvents = (io) => {
         socket.emit('error', { message: 'No tienes esa carta' });
         return;
       }
+    });
 
-      // Remover carta de la mano
-      player.hand = player.hand.filter(c => c !== cardId);
-      player.cardsPlayed++;
-      player.field[lane] = cardId;
-      player.hasPlayed = true;
-
-      // Registrar el movimiento
-      match.moves.push({
-        round: match.round,
-        player: playerSide,
-        cardId,
-        lane,
-        timestamp: Date.now()
-      });
-
-      console.log(`🃏 ${player.username} jugó carta ${cardId} en carril ${lane}`);
-
-      // Notificar al rival
-      const opponentSocketId = isP1 ? match.p2.socketId : match.p1.socketId;
-      io.to(opponentSocketId).emit('opponent-played', {
-        cardId,
-        lane,
-        username: player.username
-      });
-
-      // Si ambos jugaron, procesar ronda
-      if (player.hasPlayed && opponent.hasPlayed) {
-        processRound(io, match, matchmaking);
-      }
+    // EVENTO: Heartbeat para mantener viva la conexión
+    socket.on('ping', () => {
+      socket.emit('pong');
     });
 
     // EVENTO: Desconexión

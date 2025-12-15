@@ -86,8 +86,16 @@ const ArenaClashLobby = () => {
 
     setSocket(newSocket);
 
+    // Heartbeat para mantener la conexión viva
+    const heartbeat = setInterval(() => {
+      if (newSocket.connected) {
+        newSocket.emit('ping');
+      }
+    }, 20000); // Cada 20 segundos
+
     return () => {
       newSocket.disconnect();
+      clearInterval(heartbeat); // Limpiar el intervalo al desmontar
     };
   }, [navigate]);
 
