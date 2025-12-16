@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
 // Usar localhost si estás en desarrollo local, Railway en producción
@@ -8,15 +8,31 @@ const SOCKET_URL = isLocalhost
   ? 'http://localhost:5000'
   : '';
 
+const mockCards = [
+  { id: 1, name: 'Espadachín', emoji: '🗡️', mana: 3, damage: 4 },
+  { id: 2, name: 'Arquero', emoji: '🏹', mana: 2, damage: 3 },
+  { id: 3, name: 'Mago', emoji: '🧙', mana: 4, damage: 5 },
+  { id: 4, name: 'Gigante', emoji: '🗿', mana: 6, damage: 6 },
+  { id: 5, name: 'Pícaro', emoji: '🔪', mana: 2, damage: 2, effect: 'double_attack' },
+  { id: 6, name: 'Muro', emoji: '🧱', mana: 5, damage: 0, health: 10 },
+  { id: 7, name: 'Bomba', emoji: '💣', mana: 3, damage: 5 },
+  { id: 8, name: 'Rayo', emoji: '⚡', mana: 4, damage: 3, effect: 'direct_damage' },
+  { id: 9, name: 'Curandera', emoji: '❤️‍🩹', mana: 4, damage: 0, effect: 'heal', heal: 4 },
+];
+
+
 const ArenaClashBattle = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAiMatch = location.state?.isAiMatch || false;
+
   const [socket, setSocket] = useState(null);
   const [matchData, setMatchData] = useState(null);
   
   const [gameState, setGameState] = useState({
-    p1: { health: 30, mana: 6, cardsInHand: [], field: [null, null, null] },
-    p2: { health: 30, mana: 4, cardsInHand: [], field: [null, null, null] },
-    timer: 45,
+    p1: { name: 'Tú', health: 30, mana: 6, hand: [], field: [null, null, null], playedCard: false },
+    p2: { name: 'IA', health: 30, mana: 4, hand: [], field: [null, null, null], playedCard: false },
+    timer: 30,
     round: 1
   });
   
@@ -27,8 +43,134 @@ const ArenaClashBattle = () => {
   const [winner, setWinner] = useState(null);
   const [result, setResult] = useState(null);
 
-  // Conectar al socket
+  const drawCard = (deck) => {
+    return deck[Math.floor(Math.random() * deck.length)];
+  };
+
+  const processRound = useCallback(() => {
+    setGameState(prev => {
+      let p1Damage = 0;
+      let p2Damage = 0;
+      const newBattleLog = [...battleLog, `--- Fin Ronda ${prev.round} ---`];
+
+      for (let i = 0; i < 3; i++) {
+        const p1Card = prev.p1.field[i];
+        const p2Card = prev.p2.field[i];
+
+        if (p1Card && p2Card) {
+          const p1Dmg = p1Card.damage || 0;
+          const p2Dmg = p2Card.damage || 0;
+          if (p1Dmg > p2Dmg) {
+            p2Damage += (p1Dmg - p2Dmg);
+            newBattleLog.push(`Carril ${i+1}: ${p1Card.emoji} gana a ${p2Card.emoji}. Daño: ${p1Dmg - p2Dmg}`);
+          } else if (p2Dmg > p1Dmg) {
+            p1Damage += (p2Dmg - p1Dmg);
+            newBattleLog.push(`Carril ${i+1}: ${p2Card.emoji} gana a ${p1Card.emoji}. Daño: ${p2Dmg - p1Dmg}`);
+          } else {
+             newBattleLog.push(`Carril ${i+1}: Empate entre ${p1Card.emoji} y ${p2Card.emoji}.`);
+          }
+        } else if (p1Card) {
+          p2Damage += p1Card.damage || 0;
+          newBattleLog.push(`Carril ${i+1}: ${p1Card.emoji} ataca sin oposición. Daño: ${p1Card.damage}`);
+        } else if (p2Card) {
+          p1Damage += p2Card.damage || 0;
+          newBattleLog.push(`Carril ${i+1}: ${p2Card.emoji} ataca sin oposición. Daño: ${p2Card.damage}`);
+        }
+      }
+      
+      const newP1Health = prev.p1.health - p1Damage;
+      const newP2Health = prev.p2.health - p2Damage;
+      
+      newBattleLog.push(`Daño total: Tú ${p1Damage}, IA ${p2Damage}`);
+      setBattleLog(newBattleLog);
+
+      if (newP1Health <= 0 || newP2Health <= 0) {
+        setGameOver(true);
+        const p1Wins = newP2Health <= 0;
+        setWinner(p1Wins ? 'p1' : 'p2');
+        setResult({ winner: p1Wins });
+        return prev; // Stop further state changes
+      }
+
+      // Siguiente ronda
+      return {
+        ...prev,
+        p1: { ...prev.p1, health: newP1Health, field: [null, null, null], hand: [...prev.p1.hand, drawCard(mockCards)].slice(-5), playedCard: false },
+        p2: { ...prev.p2, health: newP2Health, field: [null, null, null], hand: [...prev.p2.hand, drawCard(mockCards)].slice(-5), playedCard: false },
+        round: prev.round + 1,
+        timer: 30,
+      };
+    });
+  }, [battleLog]);
+
+
+  const handleAiTurn = useCallback(() => {
+    setTimeout(() => {
+      setGameState(prev => {
+        if (prev.p2.playedCard || gameOver) return prev;
+
+        const availableCards = prev.p2.hand.filter(c => c.mana <= prev.p2.mana);
+        if (availableCards.length === 0) {
+           setBattleLog(bl => [...bl, "IA no tiene cartas para jugar."]);
+           processRound();
+           return {...prev, p2: {...prev.p2, playedCard: true}};
+        }
+
+        const cardToPlay = availableCards[Math.floor(Math.random() * availableCards.length)];
+        const availableLanes = [0, 1, 2].filter(i => prev.p2.field[i] === null);
+        
+        if (availableLanes.length === 0) {
+            processRound();
+            return prev;
+        }
+
+        const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+
+        const newField = [...prev.p2.field];
+        newField[lane] = cardToPlay;
+        
+        const newHand = prev.p2.hand.filter(c => c.id !== cardToPlay.id);
+
+        setBattleLog(bl => [...bl, `IA juega ${cardToPlay.emoji} en carril ${lane + 1}`]);
+        
+        const newState = {
+          ...prev,
+          p2: {
+            ...prev.p2,
+            field: newField,
+            hand: newHand,
+            mana: prev.p2.mana - cardToPlay.mana,
+            playedCard: true,
+          }
+        };
+        
+        // Si ambos jugaron, procesar ronda
+        if (newState.p1.playedCard) {
+          processRound();
+        }
+
+        return newState;
+      });
+    }, 1500);
+  }, [processRound, gameOver]);
+
+
+  // Conectar al socket o iniciar partida IA
   useEffect(() => {
+    if (isAiMatch) {
+      // --- LÓGICA PARTIDA VS IA ---
+      setMatchData({ opponentName: 'Bot Lvl 1', elo: 800 });
+      setGameState({
+        p1: { name: 'Tú', health: 30, mana: 6, hand: [drawCard(mockCards), drawCard(mockCards), drawCard(mockCards)], field: [null, null, null], playedCard: false },
+        p2: { name: 'IA', health: 30, mana: 4, hand: [drawCard(mockCards), drawCard(mockCards), drawCard(mockCards)], field: [null, null, null], playedCard: false },
+        timer: 30,
+        round: 1
+      });
+      setBattleLog(["Partida contra IA iniciada."]);
+      return; // No conectar al socket
+    }
+
+    // --- LÓGICA MULTIJUGADOR ---
     const storedMatch = localStorage.getItem('currentArenaMatch');
     if (!storedMatch) {
       navigate('/arena');
@@ -104,26 +246,29 @@ const ArenaClashBattle = () => {
     return () => {
       newSocket.disconnect();
     };
-  }, [navigate]);
+  }, [navigate, isAiMatch]);
 
   // Timer
   useEffect(() => {
-    if (gameOver || !gameState) return;
+    if (gameOver || !matchData) return;
 
-    const timer = setInterval(() => {
+    const timerInterval = setInterval(() => {
       setGameState(prev => {
         if (prev.timer <= 1) {
-          clearInterval(timer);
-          // Timeout - enviar carta aleatoria o pasar
-          if (selectedCard === null) {
-            // Auto-play una carta random
-            const randomCard = mockCards[Math.floor(Math.random() * mockCards.length)];
-            socket?.emit('play-card', {
-              matchId: matchData.matchId,
-              cardId: randomCard.id,
-              lane: Math.floor(Math.random() * 3),
-              playerSide: 'p1'
-            });
+          clearInterval(timerInterval);
+          if (isAiMatch) {
+            processRound();
+          } else {
+            // Lógica de timeout para multijugador
+            if (selectedCard === null) {
+              const randomCard = mockCards[Math.floor(Math.random() * mockCards.length)];
+              socket?.emit('play-card', {
+                matchId: matchData.matchId,
+                cardId: randomCard.id,
+                lane: Math.floor(Math.random() * 3),
+                playerSide: 'p1'
+              });
+            }
           }
           return prev;
         }
@@ -131,35 +276,61 @@ const ArenaClashBattle = () => {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [gameOver, selectedCard, socket, matchData]);
-
-  const mockCards = [
-    { id: 1, name: 'Espadachín', emoji: '🗡️', mana: 3, damage: 4 },
-    { id: 3, name: 'Mago', emoji: '🧙', mana: 4, damage: 5 },
-    { id: 6, name: 'Muro', emoji: '🏰', mana: 5, damage: 0 },
-    { id: 8, name: 'Dinamita', emoji: '💣', mana: 3, damage: 5 },
-    { id: 9, name: 'Rayo', emoji: '⚡', mana: 4, damage: 6 }
-  ];
+    return () => clearInterval(timerInterval);
+  }, [gameOver, selectedCard, socket, matchData, isAiMatch, processRound]);
 
   const handleCardPlay = (lane) => {
-    if (!selectedCard || selectedLane !== null || !socket) return;
+    if (!selectedCard || selectedLane !== null || gameState.p1.playedCard) return;
 
-    // Emitir al servidor
-    socket.emit('play-card', {
-      matchId: matchData.matchId,
-      cardId: selectedCard.id,
-      lane,
-      playerSide: 'p1'
-    });
+    if (gameState.p1.mana < selectedCard.mana) {
+      setBattleLog(prev => [...prev, "No tienes suficiente maná!"]);
+      return;
+    }
 
-    setBattleLog(prev => [
-      ...prev,
-      `${selectedCard.emoji} ${selectedCard.name} entra en carril ${lane + 1}`
-    ]);
+    if (isAiMatch) {
+      // --- JUGADA VS IA ---
+      setGameState(prev => {
+        const newField = [...prev.p1.field];
+        newField[lane] = selectedCard;
+        const newHand = prev.p1.hand.filter(c => c.id !== selectedCard.id);
+        
+        setBattleLog(bl => [...bl, `Juegas ${selectedCard.emoji} en carril ${lane + 1}`]);
+        setSelectedCard(null);
 
-    setSelectedCard(null);
-    setSelectedLane(null);
+        const newState = {
+          ...prev,
+          p1: {
+            ...prev.p1,
+            field: newField,
+            hand: newHand,
+            mana: prev.p1.mana - selectedCard.mana,
+            playedCard: true,
+          }
+        };
+
+        // Si la IA ya jugó, procesar ronda. Si no, es su turno.
+        if (newState.p2.playedCard) {
+          processRound();
+        } else {
+          handleAiTurn();
+        }
+        return newState;
+      });
+    } else {
+      // --- JUGADA MULTIJUGADOR ---
+      if (!socket) return;
+      socket.emit('play-card', {
+        matchId: matchData.matchId,
+        cardId: selectedCard.id,
+        lane,
+        playerSide: 'p1'
+      });
+      setBattleLog(prev => [
+        ...prev,
+        `${selectedCard.emoji} ${selectedCard.name} entra en carril ${lane + 1}`
+      ]);
+      setSelectedCard(null);
+    }
   };
 
   if (gameOver && result) {
@@ -181,12 +352,14 @@ const ArenaClashBattle = () => {
             {result.winner ? '¡VICTORIA!' : 'DERROTA'}
           </h1>
           
-          <div className="bg-slate-700/50 rounded-lg p-4 mb-6">
-            <p className="text-cyan-400 text-lg font-bold">
-              {result.eloChange >= 0 ? '+' : ''}{result.eloChange} ELO
-            </p>
-            <p className="text-gray-300">Nuevo ELO: {result.newElo}</p>
-          </div>
+          {!isAiMatch && (
+            <div className="bg-slate-700/50 rounded-lg p-4 mb-6">
+              <p className="text-cyan-400 text-lg font-bold">
+                {result.eloChange >= 0 ? '+' : ''}{result.eloChange} ELO
+              </p>
+              <p className="text-gray-300">Nuevo ELO: {result.newElo}</p>
+            </div>
+          )}
           
           <div className="space-y-3 mb-6">
             {result.reward && (
@@ -201,15 +374,17 @@ const ArenaClashBattle = () => {
             >
               🏠 INICIO
             </button>
-            <button
-              onClick={() => {
-                localStorage.removeItem('currentArenaMatch');
-                navigate('/arena/battle');
-              }}
-              className="flex-1 py-3 bg-cyan-500 hover:bg-cyan-600 font-bold rounded-lg transition"
-            >
-              ⚡ SIGUIENTE
-            </button>
+            {!isAiMatch && (
+              <button
+                onClick={() => {
+                  localStorage.removeItem('currentArenaMatch');
+                  navigate('/arena/battle');
+                }}
+                className="flex-1 py-3 bg-cyan-500 hover:bg-cyan-600 font-bold rounded-lg transition"
+              >
+                ⚡ SIGUIENTE
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -248,7 +423,7 @@ const ArenaClashBattle = () => {
           </div>
           
           <div className="text-center flex-1">
-            <p className="text-gray-400 text-sm">{matchData.opponentName}</p>
+            <p className="text-gray-400 text-sm">{isAiMatch ? gameState.p2.name : matchData.opponentName}</p>
             <div className="flex items-center justify-center gap-2">
               <span className="font-bold w-8">{gameState.p2.health}</span>
               <div className="w-32 h-6 bg-slate-700 rounded-full overflow-hidden border border-red-500">
@@ -271,13 +446,15 @@ const ArenaClashBattle = () => {
             <div
               key={laneIdx}
               onClick={() => selectedCard && handleCardPlay(laneIdx)}
-              className={`aspect-square rounded-xl border-2 flex items-center justify-center cursor-pointer transition-all ${
-                selectedLane === laneIdx
-                  ? 'border-cyan-500 bg-cyan-500/20'
-                  : 'border-slate-600 bg-slate-800/30 hover:border-slate-500'
-              }`}
+              className={`aspect-video rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                selectedCard && !gameState.p1.field[laneIdx]
+                  ? 'border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500/30'
+                  : 'border-slate-600 bg-slate-800/30'
+              } ${gameState.p1.field[laneIdx] ? 'cursor-not-allowed' : ''}`}
             >
-              <p className="text-gray-500 text-center text-sm">Carril {laneIdx + 1}</p>
+              {gameState.p2.field[laneIdx] && <div className="text-4xl">{gameState.p2.field[laneIdx].emoji}</div>}
+              <div className="flex-grow"></div>
+              {gameState.p1.field[laneIdx] && <div className="text-4xl">{gameState.p1.field[laneIdx].emoji}</div>}
             </div>
           ))}
         </div>
@@ -285,18 +462,19 @@ const ArenaClashBattle = () => {
         {/* CARTAS EN MANO */}
         <div>
           <p className="text-center text-gray-400 mb-2">
-            Maná: ●●●●●● 6/6
+            Maná: {gameState.p1.mana}
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-            {mockCards.map((card) => (
+            {gameState.p1.hand.map((card) => (
               <button
                 key={card.id}
                 onClick={() => setSelectedCard(selectedCard?.id === card.id ? null : card)}
+                disabled={gameState.p1.mana < card.mana}
                 className={`rounded-lg p-3 text-center transition-all border-2 ${
                   selectedCard?.id === card.id
                     ? 'border-cyan-500 bg-cyan-500/20 scale-110'
                     : 'border-slate-600 bg-slate-800 hover:border-cyan-500'
-                }`}
+                } ${gameState.p1.mana < card.mana ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="text-2xl">{card.emoji}</div>
                 <p className="text-xs font-bold mt-1">{card.name}</p>

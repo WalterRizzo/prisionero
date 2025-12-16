@@ -221,7 +221,7 @@ const ArenaClashLobby = () => {
         )}
 
         {/* QUICK MATCH SECTION */}
-        <div className="bg-gradient-to-b from-purple-900/50 to-slate-900/50 rounded-xl p-8 border border-cyan-500/30 mb-8">
+        <div className="bg-gradient-to-b from-purple-900/50 to-slate-900/50 rounded-xl p-8 border border-cyan-500/30 mb-4">
           <div className="text-center">
             <Zap className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
             <h3 className="text-2xl font-black mb-2">⚡ QUICK MATCH</h3>
@@ -251,6 +251,21 @@ const ArenaClashLobby = () => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* PLAY VS AI SECTION */}
+        <div className="bg-gradient-to-b from-gray-800/50 to-slate-900/50 rounded-xl p-8 border border-gray-600/30 mb-8">
+          <div className="text-center">
+            <Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-2xl font-black mb-2">🤖 JUGAR VS IA</h3>
+            <p className="text-gray-300 mb-6">Practica tus estrategias contra un bot.</p>
+            <button
+              onClick={() => navigate('/arena/battle', { state: { isAiMatch: true } })}
+              className="w-full py-4 bg-gradient-to-r from-gray-600 to-gray-800 text-white font-black text-xl rounded-xl hover:scale-105 transition-transform"
+            >
+              ⚔️ INICIAR PARTIDA
+            </button>
           </div>
         </div>
 
