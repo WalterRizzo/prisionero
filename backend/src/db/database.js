@@ -97,13 +97,27 @@ const createTables = () => {
 
     db.run(`
       CREATE TABLE IF NOT EXISTS arena_clash_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL,
         elo INTEGER DEFAULT 1000,
         wins INTEGER DEFAULT 0,
         losses INTEGER DEFAULT 0,
-        winrate REAL DEFAULT 0.0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS arena_clash_matches (
+        id TEXT PRIMARY KEY,
+        player1_username TEXT NOT NULL,
+        player2_username TEXT NOT NULL,
+        winner_username TEXT,
+        player1_elo_before INTEGER,
+        player2_elo_before INTEGER,
+        player1_elo_after INTEGER,
+        player2_elo_after INTEGER,
+        match_start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+        match_end_time DATETIME
       )
     `);
 
