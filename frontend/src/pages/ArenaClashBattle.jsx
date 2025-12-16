@@ -93,11 +93,14 @@ const ArenaClashBattle = () => {
       }
 
       // Siguiente ronda
+      const newRound = prev.round + 1;
+      const newMana = Math.min(newRound + 2, 10); // Mana = Round + 2, max 10
+
       return {
         ...prev,
-        p1: { ...prev.p1, health: newP1Health, field: [null, null, null], hand: [...prev.p1.hand, drawCard(mockCards)].slice(-5), playedCard: false },
-        p2: { ...prev.p2, health: newP2Health, field: [null, null, null], hand: [...prev.p2.hand, drawCard(mockCards)].slice(-5), playedCard: false },
-        round: prev.round + 1,
+        p1: { ...prev.p1, health: newP1Health, mana: newMana, field: [null, null, null], hand: [...prev.p1.hand, drawCard(mockCards)].slice(-5), playedCard: false },
+        p2: { ...prev.p2, health: newP2Health, mana: newMana, field: [null, null, null], hand: [...prev.p2.hand, drawCard(mockCards)].slice(-5), playedCard: false },
+        round: newRound,
         timer: 30,
       };
     });
